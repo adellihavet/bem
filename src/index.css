@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Amiri", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  :root {
+    direction: rtl;
+  }
+
+  body {
+    @apply bg-[#050505] text-[#E5E5E5] antialiased font-sans;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+      font-size: 11pt !important;
+    }
+    
+    aside, main, .no-print {
+      display: none !important;
+    }
+    
+    .print-only {
+      display: block !important;
+      position: relative;
+      width: 100%;
+    }
+
+    .report-container {
+      padding: 0;
+      margin: 0;
+      color: black !important;
+      background: white !important;
+    }
+
+    .institutional-header {
+      width: 100%;
+      border-bottom: 2px solid black;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+
+    .page-break-inside-avoid {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .print-chart-container {
+      display: block !important;
+    }
+
+    .print-chart-container > div {
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .stat-grid {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .stat-box {
+      border: 1px solid black;
+      padding: 8px;
+      flex: 1;
+      text-align: center;
+    }
+
+    .sophisticated-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .sophisticated-table th, .sophisticated-table td {
+      border: 1px solid black;
+      padding: 8px;
+    }
+
+    .sophisticated-table th {
+      background-color: #f2f2f2 !important;
+      -webkit-print-color-adjust: exact;
+    }
+  }
+
+  .print-only {
+    display: none;
+  }
+
+  /* Custom scrollbar for professional look */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2A2A2A;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #D4AF37;
+  }
+
+  /* Sophisticated tables */
+  .sophisticated-table th {
+    @apply font-sans font-semibold text-[10px] uppercase tracking-[0.2em] text-[#888] py-4 px-6 border-b border-[#1A1A1A];
+  }
+  .sophisticated-table td {
+    @apply py-4 px-6 border-b border-[#1A1A1A];
+  }
+}
+
+.glass-nav {
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-gradient {
+  background: linear-gradient(145deg, #121212 0%, #0A0A0A 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-link {
+  @apply px-4 py-2 text-sm font-medium transition-all relative flex items-center gap-2;
+}
+
+.nav-link::after {
+  content: '';
+  @apply absolute bottom-0 left-0 right-0 h-[2px] bg-[#D4AF37] scale-x-0 transition-transform origin-right;
+}
+
+.nav-link.active {
+  @apply text-[#D4AF37];
+}
+
+.nav-link.active::after {
+  @apply scale-x-100;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2A2A2A;
+}
