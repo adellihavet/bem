@@ -9,6 +9,7 @@ import { useAnalytics } from './hooks/useAnalytics';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, PieChart, Pie
 } from 'recharts';
+import { Download, Upload } from 'lucide-react';
 
 // Layout & UI
 import { NavLink } from './components/layout/NavLink';
@@ -139,6 +140,50 @@ export default function App() {
     setView('OVERVIEW');
   };
 
+  const exportData = () => {
+    const data = {
+      config,
+      groups,
+      students,
+      version: '2.4',
+      exportDate: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `bem-analysis-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const imported = JSON.parse(content);
+        
+        if (imported.config && imported.groups && imported.students) {
+          setConfig(imported.config);
+          setGroups(imported.groups);
+          setStudents(imported.students);
+          alert('تم استيراد البيانات بنجاح!');
+        } else {
+          alert('الملف غير صالح أو ينقصه بعض البيانات الأساسية.');
+        }
+      } catch (err) {
+        alert('حدث خطأ أثناء قراءة الملف. تأكد من أنه ملف JSON صالح.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#D4AF37] selection:text-black">
       {/* Top Navigation */}
@@ -184,6 +229,8 @@ export default function App() {
               onNavigateToGroups={() => setView('GROUPS')} 
               onNavigateToSettings={() => setView('SETTINGS')}
               onSimulate={simulateData} 
+              onExport={exportData}
+              onImport={importData}
             />
           )}
 

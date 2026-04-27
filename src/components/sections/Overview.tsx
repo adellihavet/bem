@@ -3,16 +3,18 @@ import { motion } from 'motion/react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend } from 'recharts';
 import { StatCard, ChartContainer } from '../ui/StatCards';
 import { AnalyticsStats } from '../../types';
-import { Plus, Sparkles, Settings } from 'lucide-react';
+import { Plus, Sparkles, Settings, Download, Upload } from 'lucide-react';
 
 const COLORS = ['#0ea5e9', '#6366f1', '#a855f7', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#10b981'];
 
-export function Overview({ stats, onNavigateToGroups, onSimulate, onNavigateToSettings, institutionName }: { 
+export function Overview({ stats, onNavigateToGroups, onSimulate, onNavigateToSettings, institutionName, onExport, onImport }: { 
   stats: AnalyticsStats, 
   onNavigateToGroups: () => void,
   onSimulate: () => void,
   onNavigateToSettings: () => void,
-  institutionName: string
+  institutionName: string,
+  onExport: () => void,
+  onImport: (e: React.ChangeEvent<HTMLInputElement>) => void
 }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
@@ -22,6 +24,19 @@ export function Overview({ stats, onNavigateToGroups, onSimulate, onNavigateToSe
           <p className="text-[#888] mt-2 font-sans text-sm tracking-wide">لوحة القيادة الإحصائية - نظام التحليل التنبؤي</p>
         </div>
         <div className="flex gap-4">
+          <button 
+            onClick={onExport}
+            className="px-6 py-3 bg-white/5 border border-white/10 text-[#888] text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+            title="تصدير نسخة احتياطية من البيانات"
+          >
+            <Download size={14} /> تصدير
+          </button>
+          
+          <label className="px-6 py-3 bg-white/5 border border-white/10 text-[#888] text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2 cursor-pointer" title="استيراد نسخة احتياطية">
+            <Upload size={14} /> استيراد
+            <input type="file" accept=".json" onChange={onImport} className="hidden" />
+          </label>
+
           <button 
             onClick={onNavigateToSettings}
             className="px-6 py-3 bg-white/5 border border-white/10 text-[#888] text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
