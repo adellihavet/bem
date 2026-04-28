@@ -18,40 +18,40 @@ export function Overview({ stats, onNavigateToGroups, onSimulate, onNavigateToSe
 }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
-      <header className="flex justify-between items-end border-b border-[#1A1A1A] pb-10">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end border-b border-[#1A1A1A] pb-10 gap-8">
         <div>
-          <h2 className="text-5xl font-serif font-medium text-white italic tracking-tight">{institutionName}</h2>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">{institutionName}</h2>
           <p className="text-[#888] mt-2 font-sans text-sm tracking-wide">لوحة القيادة الإحصائية - نظام التحليل التنبؤي</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap lg:flex-nowrap gap-3 lg:gap-4 w-full lg:w-auto">
           <button 
             onClick={onExport}
-            className="px-6 py-3 bg-white/5 border border-white/10 text-[#888] text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+            className="flex-1 lg:flex-none px-4 py-3 bg-white/5 border border-white/10 text-[#888] text-[9px] sm:text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
             title="تصدير نسخة احتياطية من البيانات"
           >
             <Download size={14} /> تصدير
           </button>
           
-          <label className="px-6 py-3 bg-white/5 border border-white/10 text-[#888] text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2 cursor-pointer" title="استيراد نسخة احتياطية">
+          <label className="flex-1 lg:flex-none px-4 py-3 bg-white/5 border border-white/10 text-[#888] text-[9px] sm:text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer" title="استيراد نسخة احتياطية">
             <Upload size={14} /> استيراد
             <input type="file" accept=".json" onChange={onImport} className="hidden" />
           </label>
 
           <button 
             onClick={onNavigateToSettings}
-            className="px-6 py-3 bg-white/5 border border-white/10 text-[#888] text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+            className="flex-1 lg:flex-none px-4 py-3 bg-white/5 border border-white/10 text-[#888] text-[9px] sm:text-[10px] uppercase font-bold tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-2"
           >
             <Settings size={14} /> الإعدادات
           </button>
           <button 
             onClick={onSimulate}
-            className="px-6 py-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[10px] uppercase font-bold tracking-widest hover:bg-[#D4AF37]/20 transition-all flex items-center gap-2"
+            className="flex-[2] lg:flex-none px-4 py-3 bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] text-[9px] sm:text-[10px] uppercase font-bold tracking-widest hover:bg-[#D4AF37]/20 transition-all flex items-center justify-center gap-2"
           >
             <Sparkles size={14} /> محاكاة بيانات AI
           </button>
           <button 
             onClick={onNavigateToGroups}
-            className="px-6 py-3 bg-[#D4AF37] text-black text-[10px] uppercase font-bold tracking-widest hover:bg-white transition-all flex items-center gap-2"
+            className="w-full lg:w-auto px-6 py-3 bg-[#D4AF37] text-black text-[10px] uppercase font-bold tracking-widest hover:bg-white transition-all flex items-center justify-center gap-2"
           >
             <Plus size={14} /> إدخال بيانات جديدة
           </button>
@@ -103,33 +103,35 @@ export function Overview({ stats, onNavigateToGroups, onSimulate, onNavigateToSe
         <div className="bg-[#1a1a1a] px-8 py-4 border-b border-[#222]">
            <h3 className="text-xl font-serif italic text-white">ترتيب الأفواج حسب الأداء</h3>
         </div>
-        <table className="w-full text-right">
-          <thead>
-            <tr className="text-[#D4AF37] text-[10px] uppercase tracking-widest border-b border-[#222]">
-              <th className="px-8 py-4">الفوج التربوي</th>
-              <th className="px-8 py-4">تعداد التلاميذ</th>
-              <th className="px-8 py-4">المعدل العام</th>
-              <th className="px-8 py-4">نسبة النجاح</th>
-            </tr>
-          </thead>
-          <tbody>
-            {stats.groupStats.sort((a, b) => b.average - a.average).map((g) => (
-              <tr key={g.id} className="border-b border-[#1A1A1A] hover:bg-white/5 transition-colors">
-                <td className="px-8 py-4 font-serif text-lg text-white">{g.name}</td>
-                <td className="px-8 py-4 font-mono text-[#888]">{g.count}</td>
-                <td className="px-8 py-4 font-mono text-[#D4AF37] text-xl">{g.average.toFixed(2)}</td>
-                <td className="px-8 py-4">
-                   <div className="flex items-center gap-3">
-                      <div className="flex-1 h-1 bg-[#222] overflow-hidden">
-                         <div className="h-full bg-[#6366f1] transition-all" style={{ width: `${g.successRate}%` }} />
-                      </div>
-                      <span className="text-xs font-mono text-[#6366f1] w-12">{g.successRate.toFixed(1)}%</span>
-                   </div>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-right min-w-[600px]">
+            <thead>
+              <tr className="text-[#D4AF37] text-[10px] uppercase tracking-widest border-b border-[#222]">
+                <th className="px-8 py-4">الفوج التربوي</th>
+                <th className="px-8 py-4">تعداد التلاميذ</th>
+                <th className="px-8 py-4">المعدل العام</th>
+                <th className="px-8 py-4">نسبة النجاح</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {stats.groupStats.sort((a, b) => b.average - a.average).map((g) => (
+                <tr key={g.id} className="border-b border-[#1A1A1A] hover:bg-white/5 transition-colors">
+                  <td className="px-8 py-4 font-serif text-lg text-white">{g.name}</td>
+                  <td className="px-8 py-4 font-mono text-[#888]">{g.count}</td>
+                  <td className="px-8 py-4 font-mono text-[#D4AF37] text-xl">{g.average.toFixed(2)}</td>
+                  <td className="px-8 py-4">
+                     <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1 bg-[#222] overflow-hidden">
+                           <div className="h-full bg-[#6366f1] transition-all" style={{ width: `${g.successRate}%` }} />
+                        </div>
+                        <span className="text-xs font-mono text-[#6366f1] w-12">{g.successRate.toFixed(1)}%</span>
+                     </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </motion.div>
   );

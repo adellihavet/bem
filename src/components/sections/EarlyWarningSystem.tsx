@@ -18,18 +18,18 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
       animate={{ opacity: 1 }}
       className="space-y-12"
     >
-      <header className="flex justify-between items-end border-b border-[#1A1A1A] pb-10 mb-12">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end border-b border-[#1A1A1A] pb-10 mb-12 gap-6">
         <div>
-          <h2 className="text-5xl font-serif font-medium text-white italic tracking-tight">نظام الإنذار المبكر (EWS)</h2>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">نظام الإنذار المبكر (EWS)</h2>
           <p className="text-[#888] mt-2 font-sans text-sm tracking-wide">التنبؤ العلمي المسبق لنتائج شهادة التعليم المتوسط</p>
         </div>
-        <div className="flex gap-4 bg-[#111] p-1 border border-[#222]">
+        <div className="flex flex-wrap gap-1 bg-[#111] p-1 border border-[#222] w-full lg:w-auto">
            {['ALL', 'SUCCESS', 'RISK', 'CRITICAL'].map((f) => (
               <button 
                 key={f}
                 onClick={() => setFilter(f as any)}
                 className={cn(
-                  "px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all",
+                  "flex-1 lg:flex-none px-3 sm:px-6 py-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest transition-all",
                   filter === f ? "bg-[#D4AF37] text-black" : "text-[#444] hover:text-[#888]"
                 )}
               >
@@ -66,8 +66,8 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
                  <h3 className="font-serif italic text-[#D4AF37] text-xl">مصفوفة التوقعات الفردية</h3>
                  <span className="text-[10px] text-[#444] font-mono">العدد المستهدف: {filteredPredictions.length}</span>
               </div>
-              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
-                <table className="w-full text-right sophisticated-table">
+              <div className="max-h-[600px] overflow-y-auto custom-scrollbar overflow-x-auto">
+                <table className="w-full text-right sophisticated-table min-w-[800px]">
                   <thead>
                     <tr className="text-[#D4AF37] text-[10px] sticky top-0 bg-[#0A0A0A] z-10">
                       <th className="px-6 py-4">التلميذ</th>

@@ -64,12 +64,14 @@ export function useAnalytics(students: Student[], groups: Group[], config?: AppC
         average: subAverage,
         successRate: subSuccessRate,
         homogeneity: (1 - (stdDev / 10)) * 100,
-        distribution: [
-          { name: '0-5', count: subScores.filter(v => v < 5).length },
-          { name: '5-10', count: subScores.filter(v => v >= 5 && v < 10).length },
-          { name: '10-15', count: subScores.filter(v => v >= 10 && v < 15).length },
-          { name: '15-20', count: subScores.filter(v => v >= 15).length },
-        ]
+        distribution: Array.from({ length: 10 }, (_, i) => {
+          const start = i * 2;
+          const end = (i + 1) * 2;
+          return {
+            range: `${start}-${end}`,
+            count: subScores.filter(v => v >= start && (i === 9 ? v <= end : v < end)).length
+          };
+        })
       };
     });
 

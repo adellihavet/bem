@@ -83,9 +83,9 @@ export function GroupsManager({ groups, students, onUpdateGroups, onUpdateStuden
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-      <div className="flex border-b border-[#222] mb-8">
-        <button onClick={() => setActiveTab('GROUPS')} className={`px-8 py-4 text-xs font-bold tracking-widest uppercase transition-all ${activeTab === 'GROUPS' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37]' : 'text-[#444] hover:text-white'}`}>إدارة الأفواج</button>
-        <button onClick={() => setActiveTab('DATA')} className={`px-8 py-4 text-xs font-bold tracking-widest uppercase transition-all ${activeTab === 'DATA' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37]' : 'text-[#444] hover:text-white'}`}>إدخال البيانات</button>
+      <div className="flex flex-wrap border-b border-[#222] mb-8">
+        <button onClick={() => setActiveTab('GROUPS')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all ${activeTab === 'GROUPS' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37]' : 'text-[#444] hover:text-white'}`}>إدارة الأفواج</button>
+        <button onClick={() => setActiveTab('DATA')} className={`flex-1 sm:flex-none px-4 sm:px-8 py-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-all ${activeTab === 'DATA' ? 'text-[#D4AF37] border-b-2 border-[#D4AF37]' : 'text-[#444] hover:text-white'}`}>إدخال البيانات</button>
       </div>
 
       {activeTab === 'GROUPS' && (
@@ -133,7 +133,7 @@ export function GroupsManager({ groups, students, onUpdateGroups, onUpdateStuden
               <label className="text-xs text-[#444] uppercase tracking-widest block">1. اختر الفوج التربوي</label>
               <div className="flex flex-wrap gap-2">
                 {groups.map(g => (
-                  <button key={g.id} onClick={() => { setSelectedGroupId(g.id); setUploadFeedback(null); }} className={`px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all border ${selectedGroupId === g.id ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'text-[#444] border-[#222] hover:border-[#D4AF37]/50'}`}>{g.name}</button>
+                  <button key={g.id} onClick={() => { setSelectedGroupId(g.id); setUploadFeedback(null); }} className={`flex-1 sm:flex-none px-4 sm:px-6 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all border ${selectedGroupId === g.id ? 'bg-[#D4AF37] text-black border-[#D4AF37]' : 'text-[#444] border-[#222] hover:border-[#D4AF37]/50'}`}>{g.name}</button>
                 ))}
               </div>
             </div>
@@ -142,10 +142,10 @@ export function GroupsManager({ groups, students, onUpdateGroups, onUpdateStuden
           {selectedGroupId && (
             <div className="space-y-6">
               <header className="flex justify-between items-center bg-[#1a1a1a] p-4 border-l-4 border-[#D4AF37]">
-                <h4 className="text-lg font-serif italic text-white flex items-center gap-3"><Upload size={18} className="text-[#D4AF37]" /> استيراد العلامات للفوج: {groups.find(g => g.id === selectedGroupId)?.name}</h4>
+                <h4 className="text-lg font-serif italic text-white flex items-center gap-3 flex-wrap lg:flex-nowrap"><Upload size={18} className="text-[#D4AF37]" /> استيراد العلامات للفوج: {groups.find(g => g.id === selectedGroupId)?.name}</h4>
                 {uploadFeedback && <span className={`text-xs font-bold ${uploadFeedback.type === 'success' ? 'text-green-500' : 'text-red-500'}`}>{uploadFeedback.message}</span>}
               </header>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {SUBJECTS.map(sub => (
                   <div key={sub.id} className="bg-black border border-[#222] p-4 space-y-4 group hover:border-[#D4AF37]/20 transition-all">
                     <div className="flex justify-between items-start">

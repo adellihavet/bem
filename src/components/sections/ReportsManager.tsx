@@ -175,7 +175,7 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
       <header className="border-b border-[#1A1A1A] pb-10">
-        <h2 className="text-5xl font-serif font-medium text-white italic tracking-tight">محرك التقارير (Reports Engine)</h2>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">محرك التقارير (Reports Engine)</h2>
         <p className="text-[#888] mt-2 font-sans text-sm tracking-wide">استخراج الوثائق الرسمية والتقارير التحليلية المنهجية</p>
       </header>
 
@@ -331,8 +331,8 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
             <h3 className="text-xl font-serif italic">تقرير المعايير المخصصة</h3>
           </div>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+            <div className="flex gap-2">
               <div className="flex-1 space-y-1">
                 <label className="text-[10px] text-[#444] uppercase font-bold">من (العلامة)</label>
                 <input type="number" min="0" max="20" value={minScore} onChange={(e) => setMinScore(Number(e.target.value))} className="w-full bg-black border border-[#222] p-2 text-xs text-[#D4AF37] outline-none" />
@@ -476,7 +476,7 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
                 ],
                 analysis: getInstitutionalAnalysis(students, globalAvg, overallSuccess)
               });
-            }} className="w-full md:w-auto px-10 py-5 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-white transition-all shadow-2xl relative z-10"><FileText size={20} /> استخراج التقرير الشامل</button>
+            }} className="w-full lg:w-auto px-10 py-5 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-white transition-all shadow-2xl relative z-10"><FileText size={20} /> استخراج التقرير الشامل</button>
           </div>
 
           {/* Subject Performance Audit - 1 column */}

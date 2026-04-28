@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { 
-  LayoutDashboard, Users, Zap, Target, ClipboardList, TrendingUp, Sparkles, BookOpen, Activity
+  LayoutDashboard, Users, Zap, Target, ClipboardList, TrendingUp, Sparkles, BookOpen, Activity, Menu, X
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { View, Student, Group, PrintData, SUBJECTS, AppConfig } from './types';
@@ -29,6 +29,7 @@ import { SystemSettings } from './components/sections/SystemSettings';
 export default function App() {
   const [view, setView] = useState<View>('OVERVIEW');
   const [activePrintReport, setActivePrintReport] = useState<PrintData | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [config, setConfig] = useState<AppConfig>(() => {
     const saved = localStorage.getItem('bem_config');
@@ -40,8 +41,8 @@ export default function App() {
     });
 
     return {
-      institutionName: 'متوسطة الشهيد دليحة',
-      academicYear: '2023 / 2024',
+      institutionName: 'متوسطة الشهيد .....',
+      academicYear: '2025 / 2026',
       gradeLevel: '4AM',
       analysisScope: 'BEM',
       subjectCoefficients: defaultCoeffs
@@ -119,10 +120,23 @@ export default function App() {
             val = Object.values(subScores).reduce((a, b) => a + b, 0);
           }
           if (sub.id === 'ar') {
-             subScores['البناء الفكري'] = Math.random() * 6;
-             subScores['البناء اللغوي'] = Math.random() * 6;
-             subScores['الوضعية الادماجية'] = Math.random() * 8;
-             val = Object.values(subScores).reduce((a, b) => a + b, 0);
+             // الوضعية الأولى (البناء الفكري) - 4 points -> 4/20 is too small if we scale. 
+             // Actually, in BEM, the score is out of 20. 
+             // Part 1: 12 pts (4 + 8). Part 2: 8 pts.
+             subScores['intellectual'] = Math.random() * 4;
+             subScores['linguistic'] = Math.random() * 8;
+             subScores['integrated'] = Math.random() * 8;
+             val = subScores['intellectual'] + subScores['linguistic'] + subScores['integrated'];
+          }
+          if (sub.id === 'math') {
+             // Math: Part 1 (6 pts) = 4 exercises * 1.5 pts. Part 2 (4 pts) = Situation.
+             // Total 10 pts, scaled to 20.
+             subScores['ex1'] = Math.random() * 3; // 1.5 * 2
+             subScores['ex2'] = Math.random() * 3;
+             subScores['ex3'] = Math.random() * 3;
+             subScores['ex4'] = Math.random() * 3;
+             subScores['integrated'] = Math.random() * 8; // 4 * 2
+             val = subScores['ex1'] + subScores['ex2'] + subScores['ex3'] + subScores['ex4'] + subScores['integrated'];
           }
 
           return {
@@ -187,19 +201,19 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#D4AF37] selection:text-black">
       {/* Top Navigation */}
-      <nav className="fixed top-0 left-0 right-0 h-20 bg-[#0F0F0F]/80 backdrop-blur-md border-b border-[#1A1A1A] flex items-center justify-between px-12 z-50 no-print">
-        <div className="flex items-center gap-12">
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setView('OVERVIEW')}>
+      <nav className="fixed top-0 left-0 right-0 h-20 bg-[#0F0F0F]/80 backdrop-blur-md border-b border-[#1A1A1A] flex items-center justify-between px-6 lg:px-12 z-50 no-print">
+        <div className="flex items-center gap-6 lg:gap-12">
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => { setView('OVERVIEW'); setIsMobileMenuOpen(false); }}>
             <div className="w-10 h-10 border-2 border-[#D4AF37] flex items-center justify-center relative overflow-hidden">
               <span className="text-lg font-serif font-bold group-hover:scale-110 transition-transform">A</span>
             </div>
-            <div className="hidden lg:block">
+            <div className="hidden sm:block">
               <p className="text-xs font-serif font-bold italic tracking-tighter text-[#D4AF37]">Analysis Pro</p>
               <p className="text-[8px] font-mono uppercase tracking-[0.2em] text-[#444]">{config.gradeLevel} {config.academicYear}</p>
             </div>
           </div>
 
-          <div className="flex gap-8">
+          <div className="hidden xl:flex gap-8">
             <NavLink icon={<LayoutDashboard size={18} />} label="العامة" active={view === 'OVERVIEW'} onClick={() => setView('OVERVIEW')} />
             <NavLink icon={<Users size={18} />} label="الأفواج" active={view === 'GROUPS'} onClick={() => setView('GROUPS')} />
             <NavLink icon={<BookOpen size={18} />} label="المواد" active={view === 'SUBJECTS'} onClick={() => setView('SUBJECTS')} />
@@ -211,16 +225,44 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <button onClick={() => setView('AI_REPORT')} className={cn("px-4 py-2 flex items-center gap-2 transition-all", view === 'AI_REPORT' ? "text-[#D4AF37]" : "text-[#444] hover:text-[#D4AF37]")}>
+        <div className="flex items-center gap-2 lg:gap-6">
+          <button onClick={() => { setView('AI_REPORT'); setIsMobileMenuOpen(false); }} className={cn("px-4 py-2 flex items-center gap-2 transition-all", view === 'AI_REPORT' ? "text-[#D4AF37]" : "text-[#444] hover:text-[#D4AF37]")}>
             <Sparkles size={18} />
-            <span className="text-[10px] uppercase tracking-widest font-bold">AI Analysis</span>
+            <span className="hidden sm:inline text-[10px] uppercase tracking-widest font-bold">AI Analysis</span>
+          </button>
+          
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="xl:hidden p-2 text-[#D4AF37] border border-[#D4AF37]/20 bg-white/5"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-20 left-0 right-0 bg-[#0F0F0F] border-b border-[#1A1A1A] py-6 px-6 flex flex-col gap-4 xl:hidden z-40 shadow-2xl"
+            >
+              <NavLink icon={<LayoutDashboard size={18} />} label="العامة" active={view === 'OVERVIEW'} onClick={() => { setView('OVERVIEW'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<Users size={18} />} label="الأفواج" active={view === 'GROUPS'} onClick={() => { setView('GROUPS'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<BookOpen size={18} />} label="المواد" active={view === 'SUBJECTS'} onClick={() => { setView('SUBJECTS'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<Activity size={18} />} label="المعمق" active={view === 'ADVANCED'} onClick={() => { setView('ADVANCED'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<Target size={18} />} label="التنبؤات" active={view === 'PREDICTIONS'} onClick={() => { setView('PREDICTIONS'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<Zap size={18} />} label="الارتباط" active={view === 'CORRELATION'} onClick={() => { setView('CORRELATION'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<ClipboardList size={18} />} label="التقارير" active={view === 'REPORTS'} onClick={() => { setView('REPORTS'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<Settings size={18} />} label="الإعدادات" active={view === 'SETTINGS'} onClick={() => { setView('SETTINGS'); setIsMobileMenuOpen(false); }} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Main Content Area */}
-      <main className="pt-32 px-12 pb-20 no-print min-h-screen">
+      <main className="pt-28 lg:pt-32 px-4 sm:px-8 lg:px-12 pb-20 no-print min-h-screen">
         <AnimatePresence mode="wait">
           {view === 'OVERVIEW' && (
             <Overview 
@@ -248,7 +290,11 @@ export default function App() {
           )}
 
           {view === 'SUBJECTS' && (
-            <SubjectAnalytics stats={stats} />
+            <SubjectAnalytics 
+              stats={stats} 
+              students={students}
+              groups={groups}
+            />
           )}
           
           {view === 'PREDICTIONS' && (
@@ -408,7 +454,7 @@ export default function App() {
            
            <div className="fixed bottom-0 left-0 right-0 py-4 border-t border-black text-[10px] flex justify-between px-10">
               <span>تاريخ الاستخراج: {new Date().toLocaleString('ar-DZ')}</span>
-              <span>نظام BEM Analysis Pro V2.4 المركز الوطني للمعلوماتية</span>
+              <span>BEM Analysis Pro V2.4</span>
               <span>صفحة 1 من 1</span>
            </div>
         </div>

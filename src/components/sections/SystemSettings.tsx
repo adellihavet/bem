@@ -34,7 +34,7 @@ export function SystemSettings({ config, onUpdateConfig }: SystemSettingsProps) 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
       <header className="border-b border-[#1A1A1A] pb-10">
-        <h2 className="text-5xl font-serif font-medium text-white italic tracking-tight">إعدادات النظام</h2>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">إعدادات النظام</h2>
         <p className="text-[#888] mt-2 font-sans text-sm tracking-wide">تخصيص المعايير، المستويات، والمعاملات البيداغوجية</p>
       </header>
 
