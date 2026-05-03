@@ -8,7 +8,8 @@ import {
 } from 'recharts';
 import { 
   Info, Brain, Activity, TrendingUp, Target, 
-  ArrowRight, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, Zap, X
+  ArrowRight, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, Zap, X,
+  FileText, Users
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -365,17 +366,37 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
 
   const selectedSubData = stats.subjectStats.find(s => s.id === selectedSubjectId);
 
+  const institutionalComparison = useMemo(() => {
+    if (!selectedSubjectId || !selectedSubData) return null;
+    
+    // Group average
+    const subScores = filteredStudents
+      .flatMap(s => s.scores.filter(sc => sc.subjectId === selectedSubjectId).map(sc => sc.value));
+    const groupAvg = subScores.length > 0 ? subScores.reduce((a, b) => a + b, 0) / subScores.length : 0;
+    
+    // Global average (from stats)
+    const globalAvg = selectedSubData.average;
+    const diff = groupAvg - globalAvg;
+
+    return {
+      groupAvg,
+      globalAvg,
+      diff,
+      isBetter: diff >= 0
+    };
+  }, [selectedSubjectId, selectedSubData, filteredStudents]);
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
       <header className="border-b border-[#1A1A1A] pb-10">
         <div className="space-y-8">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
             <div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">غرفة التحليل البيداغوجي</h2>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">التحليل البيداغوجي</h2>
               <p className="text-[#888] mt-2 font-sans text-xs sm:text-sm tracking-wide">ترجمة الأرقام إلى قرارات تعليمية ملموسة</p>
             </div>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
               {SUBJECTS.map(s => (
                 <button 
                   key={s.id}
@@ -392,6 +413,33 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
               ))}
             </div>
           </div>
+
+          {/* Comparison Ribbon */}
+          {institutionalComparison && (
+            <div className="flex items-center gap-4 py-3 px-6 bg-[#D4AF37]/5 border-y border-[#D4AF37]/10">
+              <div className="flex items-center gap-2">
+                <Users size={14} className="text-[#D4AF37]" />
+                <span className="text-[10px] text-[#888] uppercase font-bold tracking-tighter">موقع الفوج الحالي:</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-white">معدل الفوج:</span>
+                  <span className="font-mono text-xs text-[#D4AF37]">{institutionalComparison.groupAvg.toFixed(2)}</span>
+                </div>
+                <div className="w-px h-3 bg-[#444]" />
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-[#444]">معدل المؤسسة المستهدف:</span>
+                  <span className="font-mono text-xs text-[#666]">{institutionalComparison.globalAvg.toFixed(2)}</span>
+                </div>
+                <div className={cn(
+                  "px-2 py-0.5 rounded-full text-[9px] font-bold",
+                  institutionalComparison.isBetter ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"
+                )}>
+                  {institutionalComparison.isBetter ? "↑ أداء متفوق" : "↓ دون المستوى العام"}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-4 bg-[#111] p-2 border border-[#222]">
             <span className="text-[10px] text-[#444] font-bold uppercase tracking-widest px-4">تصفية حسب:</span>
@@ -780,16 +828,29 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
             {/* Strategic Summary - HUMANIZED */}
             <div className="bg-gradient-to-br from-[#111] to-[#000] border border-[#D4AF37]/20 p-6 relative group overflow-hidden">
                <div className="absolute bottom-0 right-0 p-2 opacity-5">
-                  <Activity size={80} />
+                  <FileText size={80} />
                </div>
-               <h4 className="text-xs font-bold text-[#D4AF37] mb-4 uppercase tracking-widest">كلمة السر للنجاح في هذه المادة</h4>
-               <div className="space-y-4 relative z-10">
+               <h4 className="text-xs font-bold text-[#D4AF37] mb-4 uppercase tracking-widest">توجيهات مجلس الأقسام</h4>
+               <div className="space-y-6 relative z-10">
                   <div className="space-y-1">
-                     <p className="text-[10px] text-white font-bold">تنبيه بيداغوجي:</p>
-                     <p className="text-[11px] text-[#888] leading-tight italic">
+                     <p className="text-[10px] text-white font-bold opacity-50">التشخيص الاستراتيجي:</p>
+                     <p className="text-[11px] text-white leading-relaxed italic">
                        {selectedSubData.average < 10 
-                         ? "المادة حالياً تضغط على نتائج المؤسسة للأسفل. التدخل الفوري مطلوب." 
-                         : "المادة الآن في وضع الأمان، يجب استغلالها لرفع معدلات التلاميذ المتوسطين."}
+                         ? "المادة حالياً تضغط على نتائج المؤسسة للأسفل. هناك خلل في معالجة المادة الأساسية يتطلب تدخلات بيداغوجية هيكلية عاجلة." 
+                         : "المادة الآن في 'منطقة الجذب'. هي ترفع معدلات المؤسسة، ويجب استغلالها كنقطة انطلاق لتحسين المواد المرتبطة بها."}
+                     </p>
+                  </div>
+
+                  <div className="space-y-1">
+                     <p className="text-[10px] text-white font-bold opacity-50">خلاصة فنية:</p>
+                     <p className="text-[11px] text-[#888] leading-tight pr-4 border-r border-[#D4AF37]/30">
+                       {(() => {
+                         const avg = institutionalComparison?.groupAvg || 0;
+                         if (avg < 8) return "أولوية قصوى: الفوج يحتاج لدروس دعم قاعدية. التلاميذ يفتقرون للأساسيات الضرورية لاستيعاب المنهاج.";
+                         if (avg < 10) return "مرحلة الترميم: هناك بوادر فهم لكنها مشتتة. ركز على 'الوضعية المشكلة' لربط الدروس ببعضها.";
+                         if (avg < 13) return "مرحلة التثبيت: أداء مستقر. ركز على تقنيات 'الإجابة النموذجية' لرفع العلامات نحو الامتياز.";
+                         return "مرحلة الامتياز: الفوج مؤهل لتحقيق نتائج باهرة. ارفع سقف الصعوبة واعمل على الجوانب الدقيقة جداً في المادة.";
+                       })()}
                      </p>
                   </div>
                </div>
@@ -845,4 +906,3 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
     </motion.div>
   );
 }
-

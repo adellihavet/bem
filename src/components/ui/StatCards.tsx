@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
 export function StatCard({ label, value, subValue, trend }: { label: string, value: string, subValue?: string, trend?: 'up' | 'down' }) {
   return (
@@ -18,11 +19,20 @@ export function StatCard({ label, value, subValue, trend }: { label: string, val
   );
 }
 
-export function ChartContainer({ title, children }: { title: string, children: React.ReactNode }) {
+export function ChartContainer({ title, subtitle, children, onClick }: { title: string, subtitle?: string, children: React.ReactNode, onClick?: () => void }) {
   return (
-    <div className="bg-[#111] p-10 border border-[#222] shadow-2xl relative overflow-hidden">
-      <div className="flex justify-between items-center mb-8 border-b border-[#1A1A1A] pb-6">
-        <h3 className="text-2xl font-serif italic text-white">{title}</h3>
+    <div 
+      className={cn(
+        "bg-[#111] p-10 border border-[#222] shadow-2xl relative overflow-hidden",
+        onClick && "cursor-pointer group hover:border-[#D4AF37]/30 transition-all"
+      )}
+      onClick={onClick}
+    >
+      <div className="flex justify-between items-start mb-8 border-b border-[#1A1A1A] pb-6">
+        <div>
+          <h3 className="text-2xl font-serif italic text-white">{title}</h3>
+          {subtitle && <p className="text-[10px] text-[#444] uppercase tracking-widest mt-1">{subtitle}</p>}
+        </div>
         <div className="flex gap-2">
           <div className="w-1.5 h-1.5 bg-[#D4AF37]" />
           <div className="w-1.5 h-1.5 bg-[#444]" />
