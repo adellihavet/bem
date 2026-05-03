@@ -212,25 +212,27 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
     if (scores.length === 0) return null;
 
     const data = {
-      part1: { total: 0, count: 0 },
+      ex1: { total: 0, count: 0 },
+      ex2: { total: 0, count: 0 },
+      ex3: { total: 0, count: 0 },
+      ex4: { total: 0, count: 0 },
       integrated: { total: 0, count: 0 }
     };
 
     scores.forEach(sc => {
       const sub = sc?.subScores;
-      // Exercises (Part 1 covers ex1 to ex4)
-      const exSum = (sub?.ex1 || 0) + (sub?.ex2 || 0) + (sub?.ex3 || 0) + (sub?.ex4 || 0);
-      data.part1.total += exSum;
-      data.part1.count++;
-      
-      if (sub?.integrated !== undefined) {
-        data.integrated.total += sub.integrated;
-        data.integrated.count++;
-      }
+      if (sub?.ex1 !== undefined) { data.ex1.total += sub.ex1; data.ex1.count++; }
+      if (sub?.ex2 !== undefined) { data.ex2.total += sub.ex2; data.ex2.count++; }
+      if (sub?.ex3 !== undefined) { data.ex3.total += sub.ex3; data.ex3.count++; }
+      if (sub?.ex4 !== undefined) { data.ex4.total += sub.ex4; data.ex4.count++; }
+      if (sub?.integrated !== undefined) { data.integrated.total += sub.integrated; data.integrated.count++; }
     });
 
     return {
-      part1Avg: data.part1.count > 0 ? (data.part1.total / data.part1.count) : null,
+      ex1Avg: data.ex1.count > 0 ? (data.ex1.total / data.ex1.count) : null,
+      ex2Avg: data.ex2.count > 0 ? (data.ex2.total / data.ex2.count) : null,
+      ex3Avg: data.ex3.count > 0 ? (data.ex3.total / data.ex3.count) : null,
+      ex4Avg: data.ex4.count > 0 ? (data.ex4.total / data.ex4.count) : null,
       integratedAvg: data.integrated.count > 0 ? (data.integrated.total / data.integrated.count) : null,
     };
   }, [selectedSubjectId, filteredStudents]);
@@ -315,6 +317,35 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
     };
   };
 
+  // Analysis for Bell Curve (Finding Reading)
+  const getCurveInterpretation = () => {
+    if (currentDistribution.length === 0) return null;
+    
+    // Find the mode (most common range)
+    const sortedDist = [...currentDistribution].sort((a, b) => b.count - a.count);
+    const mode = sortedDist[0];
+    const avg = gapAnalysis?.avg || 0;
+
+    let reading = "";
+    let highlight = "";
+    
+    if (avg > 12 && parseInt(mode.range.split('-')[0]) >= 12) {
+      highlight = "منحنى منزاح لليمين (تميز)";
+      reading = "النتائج ممتازة، وأغلب التلاميذ يتمركزون في منطقة الامتياز. هذا يشير إلى أن الاختبار كان في متناولهم أو أن مستوى الفوج عالٍ جداً.";
+    } else if (avg < 9 && parseInt(mode.range.split('-')[1]) <= 10) {
+      highlight = "منحنى منزاح لليسار (تعثر)";
+      reading = "هناك تكدس كبير تحت عتبة الـ 10. هذا جرس إنذار! إما أن المواضيع كانت تفوق مستوى التلاميذ أو أن القاعدة الأساسية للمادة مفقودة.";
+    } else if (parseInt(mode.range.split('-')[0]) >= 8 && parseInt(mode.range.split('-')[1]) <= 13) {
+      highlight = "منحنى متمركز (توزع طبيعي)";
+      reading = "أغلب النتائج حول المعدل. هذا هو التوزيع الصحي بيداغوجياً، حيث يعبر عن اختبار تدرج في الصعوبة وفصل بين مختلف المستويات بصدق.";
+    } else {
+      highlight = "منحنى مشتت (فجوة مستويات)";
+      reading = "لا يوجد تكتل واضح، النتائج مبعثرة. هذا يعني عدم استقرار في التحصيل الدراسي وصعوبة التنبؤ بسلوك الفوج في المرة القادمة.";
+    }
+
+    return { highlight, reading };
+  };
+
   const getSimulationRecommendation = () => {
     if (!simulationImpact) return null;
 
@@ -329,18 +360,27 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
       content: (
         <div className="space-y-4">
           <p className="text-sm text-[#888]">بمجهود إضافي بسيط في مادتك (+{simulationBonus} نقاط)، يمكنك نقل **{pivotStudents.length}** تلاميذ من "حافة الرسوب" إلى "بر النجاة".</p>
-          <div className="max-h-40 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-            {pivotStudents.map(s => (
-              <div key={s.id} className="flex justify-between items-center p-2 bg-blue-500/5 border border-blue-500/10 text-[10px]">
-                <span className="text-white">{s.name}</span>
-                <span className="text-blue-400 font-mono">المعدل العام: {calculateAvg(s).toFixed(2)}</span>
-              </div>
-            ))}
+          <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+            {pivotStudents.map(s => {
+              const studentGroup = groups.find(g => g.id === s.groupId);
+              return (
+                <div key={s.id} className="p-3 bg-blue-500/5 border border-blue-500/10 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-serif">{s.firstName} {s.lastName}</span>
+                    <span className="text-[10px] text-[#444] font-mono">{studentGroup?.name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] text-blue-400">المعدل العام الحالي:</span>
+                    <span className="text-xs font-mono text-blue-400">{calculateAvg(s).toFixed(2)}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           <div className="p-3 bg-white/5 border-l-2 border-blue-500">
-             <p className="text-[10px] text-[#D4AF37] leading-tight font-bold">لماذا هؤلاء؟</p>
-             <p className="text-[10px] text-[#888] mt-1 italic">
-               هؤلاء التلاميذ هم الأقرب للنجاح. تحفيزهم في مادتك يعني آلياً تحسين نسبة النجاح الكلية للمؤسسة في شهادة التعليم المتوسط.
+             <p className="text-[10px] text-[#D4AF37] leading-tight font-bold italic mb-1">لماذا هؤلاء تحديداً؟</p>
+             <p className="text-[10px] text-[#888] leading-relaxed">
+               هؤلاء التلاميذ هم "الكتلة الحرجة". مجهود قليل من أستاذ المادة هنا يغير مصير المؤسسة بكاملها في نسب النجاح. أي تحسن طفيف في مادتك سيرفع معدلهم العام فوق 10 مباشرة.
              </p>
           </div>
         </div>
@@ -483,27 +523,41 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
                     <p className="text-xs text-[#555] mt-1">أين تتكتل أغلب علامات التلاميذ؟ هذا المنحنى يكشف "سلوك القسم" لـ {selectedGroupId ? groups.find(g => g.id === selectedGroupId)?.name : 'كل الأقسام'}.</p>
                   </div>
                   <button 
-                    onClick={() => setModalContent({
-                      title: "فهم توزيع العلامات",
-                      type: 'info',
-                      content: (
-                        <div className="space-y-4">
-                          <p className="text-sm text-[#888] leading-relaxed">
-                            يُستخدم هذا المنحنى (منحنى الجرس) لاختبار مدى "عدالة وصدق" الاختبارات.
-                          </p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 bg-white/5 border-r-2 border-[#D4AF37]">
-                              <h5 className="text-[#D4AF37] font-bold mb-2">التوزع الطبيعي</h5>
-                              <p className="text-xs">يعني أن الأسئلة تدرجت من السهولة للصعوبة بشكل علمي، وهي أصح وضعية بيداغوجية.</p>
+                    onClick={() => {
+                      const interpretation = getCurveInterpretation();
+                      setModalContent({
+                        title: "فهم توزيع العلامات",
+                        type: 'info',
+                        content: (
+                          <div className="space-y-6">
+                            <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-sm">
+                               <p className="text-[10px] text-[#D4AF37] font-bold uppercase mb-2">قراءة النتيجة (فني):</p>
+                               <div className="space-y-2">
+                                  <p className="text-lg font-serif italic text-white leading-tight">{interpretation?.highlight}</p>
+                                  <p className="text-sm text-[#888] leading-relaxed">{interpretation?.reading}</p>
+                               </div>
                             </div>
-                            <div className="p-4 bg-white/5 border-r-2 border-red-500">
-                              <h5 className="text-red-500 font-bold mb-2">التوزع المنزاح</h5>
-                              <p className="text-xs">إذا انزاح المنحنى لليسار، فهذا يعني أن الاختبار كان يعتمد على 'الحفظ الصم' أو كان 'تعجيزياً'.</p>
+
+                            <div className="space-y-4">
+                              <p className="text-xs text-[#555] leading-relaxed uppercase tracking-widest font-bold">معلومات تقنية للمدير:</p>
+                              <p className="text-[11px] text-[#888] leading-relaxed">
+                                يُستخدم هذا المنحنى (منحنى الجرس) لاختبار مدى "عدالة وصدق" الاختبارات التي أعدها الأستاذ.
+                              </p>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 bg-white/5 border-r-2 border-[#D4AF37]">
+                                  <h5 className="text-[#D4AF37] font-bold mb-2">التوزع الطبيعي</h5>
+                                  <p className="text-[10px] text-[#666]">يعني أن الأسئلة تدرجت من السهولة للصعوبة بشكل علمي، وهي أصح وضعية بيداغوجية.</p>
+                                </div>
+                                <div className="p-4 bg-white/5 border-r-2 border-red-500">
+                                  <h5 className="text-red-500 font-bold mb-2">التوزع المنزاح</h5>
+                                  <p className="text-[10px] text-[#666]">إذا انزاح المنحنى لليسار، فهذا يعني أن الاختبار كان يعتمد على 'الحفظ الصم' أو كان 'تعجيزياً'.</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      });
+                    }}
                     className="p-2 border border-[#222] hover:bg-[#D4AF37]/10 transition-all text-[#D4AF37]"
                   >
                     <Info size={16} />
@@ -648,48 +702,41 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="p-6 bg-white/5 border border-white/10 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-[#888]">الجزء 1: التمارين الأربعة (6 ن)</span>
-                      <span className="text-lg font-mono text-white">
-                        {mathDetailedAnalysis.part1Avg?.toFixed(1) || '0.0'}/12
-                      </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
+                  {[
+                    { label: 'ت 1: أعداد/حساب', val: mathDetailedAnalysis.ex1Avg, max: 3, color: 'bg-orange-500' },
+                    { label: 'ت 2: جبر/معادلات', val: mathDetailedAnalysis.ex2Avg, max: 3, color: 'bg-orange-400' },
+                    { label: 'ت 3: هندسة مستوية', val: mathDetailedAnalysis.ex3Avg, max: 3, color: 'bg-orange-600' },
+                    { label: 'ت 4: جملة معادلات', val: mathDetailedAnalysis.ex4Avg, max: 3, color: 'bg-orange-300' },
+                    { label: 'الوضعية الإدماجية', val: mathDetailedAnalysis.integratedAvg, max: 8, color: 'bg-blue-500' },
+                  ].map((item, i) => (
+                    <div key={i} className="p-4 bg-white/5 border border-white/10 space-y-3">
+                      <div className="flex justify-between items-center text-[10px] text-[#888]">
+                         <span>{item.label}</span>
+                         <span className="font-mono text-white">{item.val?.toFixed(1) || '0.0'}/{item.max}</span>
+                      </div>
+                      <div className="h-1 bg-[#222] rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${((item.val || 0) / item.max) * 100}%` }}
+                          className={cn("h-full", item.color)}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-[#222] rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${((mathDetailedAnalysis.part1Avg || 0) / 12) * 100}%` }}
-                        className="h-full bg-orange-500"
-                      />
-                    </div>
-                    <p className="text-[10px] text-[#555] italic">يقيس التحكم في الموارد الرياضية المباشرة (حساب، هندسة، تنظيم معطيات).</p>
-                  </div>
-
-                  <div className="p-6 bg-white/5 border border-white/10 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-[#888]">الجزء 2: الوضعية الإدماجية (4 ن)</span>
-                      <span className="text-lg font-mono text-white">
-                        {mathDetailedAnalysis.integratedAvg?.toFixed(1) || '0.0'}/8
-                      </span>
-                    </div>
-                    <div className="h-2 bg-[#222] rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${((mathDetailedAnalysis.integratedAvg || 0) / 8) * 100}%` }}
-                        className="h-full bg-blue-500"
-                      />
-                    </div>
-                    <p className="text-[10px] text-[#555] italic">يقيس مهارة تجنيد الموارد لحل مشكلة معقدة ومركبة.</p>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="mt-8 p-4 border border-orange-500/20 bg-orange-500/5">
                   <p className="text-[11px] text-orange-200">
-                    <span className="font-bold">التوصية الرياضية: </span>
-                    {mathDetailedAnalysis.part1Avg! > 8 && mathDetailedAnalysis.integratedAvg! < 3.5
-                      ? "التلاميذ متمكنون من الآليات الحسابية لكنهم يتعثرون في 'النمذجة'. ركز على تدريبهم على 'فهم وحل الوضعيات' وتفكيك المشكلات."
-                      : "احرص على الموازنة بين التمارين المهارية والوضعيات التي تتطلب تفكيراً مركباً لضمان الجاهزية القصوى للامتحان."}
+                    <span className="font-bold">التوصية الرياضية للمدير: </span>
+                    {(() => {
+                      const exAvg = ((mathDetailedAnalysis.ex1Avg || 0) + (mathDetailedAnalysis.ex2Avg || 0) + (mathDetailedAnalysis.ex3Avg || 0) + (mathDetailedAnalysis.ex4Avg || 0)) / 12;
+                      const sitAvg = (mathDetailedAnalysis.integratedAvg || 0) / 8;
+                      
+                      if (exAvg > 0.6 && sitAvg < 0.4) return "التلاميذ يملكون مهارات حسابية رائعة في التمارين المستقلة، لكنهم يعجزون عن تطبيقها في 'مشروع حل مشكلة' (الوضعية). هذا مؤشر على ضعف في 'الذكاء التحليلي' يتطلب حصصاً تركز على استراتيجيات حل المشكلات وليس مجرد تمارين جافة.";
+                      if (exAvg < 0.4) return "هناك ضعف قاعدي في الأساسيات الرياضية (جدول الضرب، قواعد الإشارات، التحويلات). الوضعية الإدماجية ستظل معقدة عليهم طالما لم يتم ترميم هذه الأساسيات أولاً.";
+                      return "توازن جيد بين تحصيل الموارد وتوظيفها. استمر في تعميق مهارات النمذجة الرياضية لضمان الامتياز.";
+                    })()}
                   </p>
                 </div>
               </div>
@@ -784,9 +831,37 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
 
              {/* Subject Correlation (Causality) - HUMANIZED */}
              <div className="bg-[#111] border border-[#222] p-6 space-y-6">
-                <div className="flex items-center gap-3 text-purple-500">
-                   <Brain size={20} />
-                   <h4 className="font-bold text-sm uppercase tracking-widest">مواد تدعم هذا التخصص</h4>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-purple-500">
+                     <Brain size={20} />
+                     <h4 className="font-bold text-sm uppercase tracking-widest">مواد تدعم هذا التخصص</h4>
+                  </div>
+                  <button 
+                    onClick={() => setModalContent({
+                      title: "فهم ترابط المواد (الارتباط الشرطي)",
+                      type: 'info',
+                      content: (
+                        <div className="space-y-6">
+                          <p className="text-sm text-[#888] leading-relaxed">
+                            هذا المؤشر لا يعني أن مادة "تسبب" نجاح مادة أخرى، بل يعني وجود <span className="text-purple-400 font-bold">مهارات ذهنية مشتركة</span>.
+                          </p>
+                          <div className="space-y-4">
+                            <div className="p-4 bg-white/5 border-r-2 border-purple-500">
+                              <h5 className="text-purple-400 font-bold mb-1 text-xs">لماذا تظهر الفيزياء مرتبطة بالرياضيات؟</h5>
+                              <p className="text-[10px] text-[#666]">لأن كلاهما يعتمد على مهارة 'التجريد' و 'المنطق'. إذا تحسن التلميذ في أحدهما، فهذا يعني أن جهازه المنطقي تطور، مما ينعكس آلياً على الأخرى.</p>
+                            </div>
+                            <div className="p-4 bg-white/5 border-r-2 border-green-500">
+                              <h5 className="text-green-400 font-bold mb-1 text-xs">الفائدة العملية للمدير:</h5>
+                              <p className="text-[10px] text-[#666]">عند ملاحظة ضعف في {SUBJECTS.find(s => s.id === selectedSubjectId)?.name}، اطلب من أستاذ المادة التنسيق مع أساتذة المواد المرتبطة أعلاه لتوحيد المصطلحات والمنهجية.</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    className="p-1 px-2 border border-purple-500/20 text-purple-500 text-[8px] font-bold uppercase transition-all hover:bg-purple-500/10"
+                  >
+                    شرح علمي
+                  </button>
                 </div>
                 
                 <p className="text-[10px] text-[#555] leading-relaxed italic">التلميذ الذي يتحسن في {SUBJECTS.find(s => s.id === selectedSubjectId)?.name}، غالباً ما يتحسن آلياً في:</p>

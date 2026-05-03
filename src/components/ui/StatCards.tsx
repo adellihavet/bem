@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
+import { Info } from 'lucide-react';
 
 export function StatCard({ label, value, subValue, trend }: { label: string, value: string, subValue?: string, trend?: 'up' | 'down' }) {
   return (
@@ -30,7 +31,10 @@ export function ChartContainer({ title, subtitle, children, onClick }: { title: 
     >
       <div className="flex justify-between items-start mb-8 border-b border-[#1A1A1A] pb-6">
         <div>
-          <h3 className="text-2xl font-serif italic text-white">{title}</h3>
+          <div className="flex items-center gap-2 mb-1">
+            {onClick && <Info size={14} className="text-[#D4AF37] opacity-50 group-hover:opacity-100 transition-opacity" />}
+            <h3 className="text-2xl font-serif italic text-white leading-tight">{title}</h3>
+          </div>
           {subtitle && <p className="text-[10px] text-[#444] uppercase tracking-widest mt-1">{subtitle}</p>}
         </div>
         <div className="flex gap-2">

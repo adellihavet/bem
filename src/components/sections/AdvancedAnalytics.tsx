@@ -205,7 +205,7 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-[#0A0A0A] border border-[#222] p-4 shadow-2xl space-y-4">
+        <div className="bg-[#0A0A0A] border border-[#222] p-4 shadow-2xl space-y-4 text-right" dir="rtl">
           <p className="text-[#D4AF37] font-serif italic border-b border-[#222] pb-2">{data.name}</p>
           <div className="grid grid-cols-2 gap-4 text-[10px]">
             <div>
@@ -213,10 +213,20 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
               <p className="text-white font-mono">{data.avg.toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-[#444] uppercase font-bold mb-1">الاستقرار</p>
+              <p className="text-[#444] uppercase font-bold mb-1">
+                {mode === 'SUBJECTS' ? 'الاستمرارية (التجانس)' : 'الاستقرار'}
+              </p>
               <p className="text-white font-mono">{data.stability.toFixed(1)}%</p>
             </div>
           </div>
+          
+          {mode === 'SUBJECTS' && (
+            <div className="pt-2 border-t border-[#222]">
+              <p className="text-[8px] text-[#555] leading-relaxed italic">
+                * تُحسب نسبة الاستمرارية بقياس مدى تقارب نتائج جميع التلاميذ من بعضها البعض. كلما زادت النسبة، دل ذلك على أن المادة لا تفرق بين تلميذ وآخر بشكل حاد (أداء مستقر للفوج).
+              </p>
+            </div>
+          )}
           
           {mode === 'GROUPS' && data.stars && data.stars.length > 0 && (
             <div className="space-y-2 border-t border-[#222] pt-2">
@@ -257,26 +267,58 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
     const insights: Record<string, any> = {
       'critical': {
         title: "تحليل الشريحة الحرجة",
-        diagnosis: "هناك مجموعة من التلاميذ تجاوزوا 'عتبة الخطر'. هؤلاء لا يحتاجون فقط للدعم التربوي، بل لتشخيص اجتماعي ونفسي كون تعثرهم شمولياً في كامل المواد.",
+        diagnosis: "تم حساب هذا الرقم بجمع كافة التلاميذ الذين حصلوا على تصنيف 'حرج' في نظام التنبؤ (EWS)، وهم الذين يملكون معدلاً متوقعاً أقل من 8/20 مع تراكم عوامل الخطر.",
         advice: {
           tactical: "استدعاء أولياء الأمور فوراً ووضع 'عقد نجاح' فردي لكل تلميذ مع تقليص ساعات المواد غير الأساسية مؤقتاً للتركيز على 'القاعدة'.",
           strategic: "مراجعة نظام التوجيه المدرسي وبحث إمكانية تكييف المناهج لهذه الفئة لتجنب التسرب المدرسي."
         }
       },
       'stability': {
-        title: "مؤشر التجانس المؤسساتي",
-        diagnosis: "التجانس المرتفع يعني أن القسم ككتلة واحدة يتحرك بنفس الوتيرة. التجانس المنخفض يعني وجود 'هوة سحيقة' داخل نفس القسم بين المتفوقين والمتاخرين.",
+        title: "مؤشر استقرار الأداء (التجانس)",
+        diagnosis: "يُحسب بقسمة (الانحراف المعياري) على (المتوسط) وطرحه من 100. هو يخبرك: هل نتائج القسم متقاربة (استقرار عالي) أم مشتتة جداً بين ممتاز وضعيف (فجوة كبيرة)؟",
         advice: {
           tactical: "اعتماد 'بيداغوجيا الفروق' وتقسيم القسم الواحد إلى أفواج عمل صغيرة تضم كل منها تلميذاً متفوقاً للمساعدة (التعلم بالأقران).",
           strategic: "إعادة توزيع التلاميذ في بداية الموسم بناءً على مستوياتهم لضمان تقارب وتيرة الاستيعاب داخل كل حجرة دراسية."
         }
       },
-      'gap': {
-        title: "فجوة العلوم واللغات",
-        diagnosis: "الكثير من التلاميذ عباقرة في المنطق (الرياضيات) لكنهم يفشلون لأنهم لا يفهمون الأسئلة (اللغات). الفجوة هنا دليل على 'فقر لغوي' يعيق الانطلاق العلمي.",
+      'effectiveness': {
+        title: "فاعلية التحصيل (العائد البيداغوجي)",
+        diagnosis: "هذا الرقم يربط بين 'المجهود' و 'النتيجة'. يُحسب بنسبة النجاح المحققة مقارنة بالمعدل العام للمادة. كلما ارتفع، دل على أن المادة 'منتجة' وتحول المجهود لنتائج ملموسة.",
         advice: {
-          tactical: "فرض قراءة نصوص علمية باللغات الأجنبية واللغة العربية داخل حصص المواد العلمية لربط المصطلح بالمنطق.",
-          strategic: "تنسيق مابين أساتذة اللغات والعلوم لتوحيد المصطلحات التقنية وتبسيطها بيداغوجياً."
+          tactical: "تحليل أدوات التقويم؛ ربما تكون النتائج مرتفعة لكن بأسئلة سهلة لا تختبر القدرات الحقيقية.",
+          strategic: "موازنة نسب النجاح الكمي مع النوعية لضمان أن الفاعلية حقيقية وليست تضخماً في العلامات."
+        }
+      },
+      'excellence': {
+        title: "معدل الامتياز المؤسساتي",
+        diagnosis: "هو الوسط الحسابي لجميع معدلات الأقسام. يمثل 'نبض المؤسسة' العام ومقياس تقدمها مقارنة بالسنوات الماضية.",
+        advice: {
+          tactical: "مقارنة هذا المعدل مع المعدلات الفصلية السابقة لرصد أي تراجع أو تقدم مفاجئ في المنظومة.",
+          strategic: "تحديد هدف (Target) سنوي لرفع هذا المعدل بنسبة مئوية محددة عبر خطة تحسين شاملة."
+        }
+      },
+      'dynamics': {
+        title: "ديناميكية الأداء العام",
+        diagnosis: "هذا المنحنى يراقب 'تذبذب' الأداء. إذا كان متعرجاً جداً، فهذا يعني عدم استقرار في التحصيل. إذا كان صاعداً رصيناً، فهو دليل على نمو بيداغوجي سليم.",
+        advice: {
+          tactical: "معالجة بؤر الضعف في الأقسام التي تكسر المنحنى نزولاً.",
+          strategic: "استخدام هذا التاريخ البياني للتنبؤ بنتائج شهادة التعليم المتوسط وتعديل مسار الدعم بناءً على الاتجاه العام."
+        }
+      },
+      'academic_footprint': {
+        title: "البصمة الأكاديمية (الرادار السلوكي)",
+        diagnosis: "هذا الرسم يوضح 'توازن القوى' في العينة المختارة. هل هناك ميل للمواد العلمية على حساب الأدبية؟ هل هناك فقر في اللغات؟ المساحة المغطاة تعبر عن قوة التحصيل الشامل.",
+        advice: {
+          tactical: "إذا وجدت الرادار 'منزعاً' أو ضعيفاً في زاوية معينة، فهذا يتطلب تدخل منسقي هذه المواد لإعادة التوازن.",
+          strategic: "مقارنة بصمة الفوج الحالي مع الأفواج السابقة لتحديد ما إذا كان الملف الدراسي للمؤسسة يتغير بمرور الزمن."
+        }
+      },
+      'teacher_perf': {
+        title: "أداء الأستاذ vs متوسط القسم",
+        diagnosis: "يُحسب أداء الأستاذ بمعدل المادة التي يدرسها في القسم، ويقارن بـ 'متوسط القسم' في باقي المواد. إذا كان أداء الأستاذ أعلى بكثير، فهو 'رافع للمستوى'. إذا كان العكس، فالمشكلة في المادة أو طريقة التدريس.",
+        advice: {
+          tactical: "مناقشة الفجوة مع الأستاذ؛ هل صعوبة المادة هي السبب أم أن القسم يملك 'نفوراً' من هذه المادة تحديداً؟",
+          strategic: "تحفيز الأساتذة 'الرافعين للمستوى' وتعميم طرائقهم في التدريس لرفع baselines الأقسام الضعيفة."
         }
       },
       'matrix': {
@@ -352,7 +394,7 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
             <h4 className="text-sm font-serif italic">الشريحة الحرجة</h4>
           </div>
           <p className="text-3xl font-mono text-white group-hover:scale-110 transition-transform origin-left">{stats.predictions.filter(p => p.status === 'CRITICAL').length}</p>
-          <p className="text-[10px] text-[#444] uppercase tracking-widest flex items-center gap-2">تلميذ بحاجة لتدخل <Info size={10} /></p>
+          <p className="text-[10px] text-[#444] uppercase tracking-widest flex items-center gap-2">تلميذ بحاجة لتدخل <Info size={10} className="text-[#D4AF37]" /></p>
         </div>
         <div 
           onClick={() => setActiveModal('stability')}
@@ -363,23 +405,29 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
             <h4 className="text-sm font-serif italic">استقرار الأداء</h4>
           </div>
           <p className="text-3xl font-mono text-white">{(performanceMatrix.reduce((a, b) => a + b.stability, 0) / (performanceMatrix.length || 1)).toFixed(1)}%</p>
-          <p className="text-[10px] text-[#444] uppercase tracking-widest flex items-center gap-2">معدل التجانس في العينة <Info size={10} /></p>
+          <p className="text-[10px] text-[#444] uppercase tracking-widest flex items-center gap-2">معدل التجانس في العينة <Info size={10} className="text-[#D4AF37]" /></p>
         </div>
-        <div className="bg-[#111] border border-[#222] p-8 space-y-4">
+        <div 
+          onClick={() => setActiveModal('effectiveness')}
+          className="bg-[#111] border border-[#222] p-8 space-y-4 cursor-help group hover:border-indigo-500/50 transition-all"
+        >
           <div className="flex items-center gap-3 text-[#6366f1]">
             <Target size={20} />
             <h4 className="text-sm font-serif italic">فاعلية التحصيل</h4>
           </div>
           <p className="text-3xl font-mono text-white">{(stats.successRate / (stats.overallAverage * 5 || 1)).toFixed(2)}</p>
-          <p className="text-[10px] text-[#444] uppercase tracking-widest">معامل العائد البيداغوجي</p>
+          <p className="text-[10px] text-[#444] uppercase tracking-widest flex items-center gap-2">معامل العائد البيداغوجي <Info size={10} className="text-[#D4AF37]" /></p>
         </div>
-        <div className="bg-[#111] border border-[#222] p-8 space-y-4">
+        <div 
+          onClick={() => setActiveModal('excellence')}
+          className="bg-[#111] border border-[#222] p-8 space-y-4 cursor-help group hover:border-green-500/50 transition-all"
+        >
           <div className="flex items-center gap-3 text-green-500">
             <Activity size={20} />
             <h4 className="text-sm font-serif italic">معدل الامتياز</h4>
           </div>
           <p className="text-3xl font-mono text-white">{stats.overallAverage.toFixed(2)}</p>
-          <p className="text-[10px] text-[#444] uppercase tracking-widest">متوسط التحصيل المؤسساتي</p>
+          <p className="text-[10px] text-[#444] uppercase tracking-widest flex items-center gap-2">متوسط التحصيل المؤسساتي <Info size={10} className="text-[#D4AF37]" /></p>
         </div>
       </div>
 
@@ -433,9 +481,12 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
 
         {/* Dynamic Secondary Chart */}
         <ChartContainer 
-          title={mode === 'GROUPS' ? "ميزان العلوم واللغات" : "توزيع الأداء النسبي"}
-          subtitle="تحليل التباين بين مجالات التعلم أو العينات"
-          onClick={() => setActiveModal('gap')}
+          title={mode === 'GROUPS' ? "ميزان العلوم واللغات" : mode === 'TEACHERS' ? "توزيع الأداء النسبي (الأستاذ vs القسم)" : "توزيع الأداء النسبي"}
+          subtitle={mode === 'TEACHERS' ? "أداء الأستاذ (معدل مادته) مقارنة بمتوسط القسم (باقي المواد)" : "تحليل التباين بين مجالات التعلم أو العينات"}
+          onClick={() => {
+            if (mode === 'TEACHERS') setActiveModal('teacher_perf');
+            else if (mode === 'GROUPS') setActiveModal('gap');
+          }}
         >
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
@@ -486,9 +537,21 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
 
         {/* Global Performance Comparison */}
         <div className="lg:col-span-2 space-y-6">
-           <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-4">
-              <Activity size={18} className="text-purple-500" />
-              <h3 className="text-xl font-serif italic text-white underline underline-offset-8 decoration-purple-900/50">ديناميكية الأداء العام</h3>
+           <div 
+             className="flex items-center justify-between border-b border-[#1A1A1A] pb-4 cursor-help group"
+             onClick={() => setActiveModal('dynamics')}
+           >
+              <div className="flex items-center gap-2 self-start">
+                 <button 
+                  className="p-1 text-[#D4AF37] group-hover:bg-[#D4AF37] group-hover:text-black transition-all border border-[#D4AF37]/20"
+                 >
+                   <Info size={14} />
+                 </button>
+              </div>
+              <div className="flex items-center gap-3 text-purple-500">
+                <Activity size={18} />
+                <h3 className="text-xl font-serif italic text-white underline underline-offset-8 decoration-purple-900/50 group-hover:text-purple-400 transition-colors">ديناميكية الأداء العام</h3>
+              </div>
            </div>
            <div className="h-80 bg-[#111] border border-[#222] p-8">
               <ResponsiveContainer width="100%" height="100%">
@@ -501,6 +564,21 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
                    <Line type="monotone" dataKey="stability" stroke="#6366f1" strokeWidth={1} strokeDasharray="5 5" name="مؤشر الاستقرار (%)" />
                 </LineChart>
               </ResponsiveContainer>
+           </div>
+           
+           <div className="mt-4 p-4 border border-[#222] bg-white/5">
+              <p className="text-[10px] text-[#D4AF37] font-bold uppercase mb-1">قراءة وتحليل للمدير:</p>
+              <p className="text-[11px] text-[#888] leading-relaxed">
+                {(() => {
+                  const sorted = [...performanceMatrix].sort((a, b) => a.avg - b.avg);
+                  const first = sorted[0];
+                  const last = sorted[sorted.length - 1];
+                  const gap = (last?.avg || 0) - (first?.avg || 0);
+
+                  if (gap > 4) return `هناك فجوة أداء كبيرة (${gap.toFixed(1)} نقاط) بين أقوى وأضعف عينة. هذا يتطلب توحيد المنهجية وتحويل الممارسات الناجحة من ${last?.name} إلى البقية لتقليص الفارق.`;
+                  return "توزيع الأداء العام متقارب بشكل صحي، مما يدل على انسجام تعليمي داخل المؤسسة وتكافؤ فرص التعلم بين مختلف الأفواج.";
+                })()}
+              </p>
            </div>
            
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -531,7 +609,10 @@ export function AdvancedAnalytics({ stats, students }: { stats: AnalyticsStats, 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {radarData && (
-          <ChartContainer title={`البصمة الأكاديمية: ${selectedName}`}>
+          <ChartContainer 
+            title={`البصمة الأكاديمية: ${selectedName}`}
+            onClick={() => setActiveModal('academic_footprint')}
+          >
             <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
