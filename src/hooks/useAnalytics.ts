@@ -67,8 +67,8 @@ export function useAnalytics(students: Student[], groups: Group[], config?: AppC
         distribution: Array.from({ length: 10 }, (_, i) => {
           const start = i * 2;
           const end = (i + 1) * 2;
-          return {
-            range: `${start}-${end}`,
+            return {
+            name: `${start}-${end}`,
             count: subScores.filter(v => v >= start && (i === 9 ? v <= end : v < end)).length
           };
         })

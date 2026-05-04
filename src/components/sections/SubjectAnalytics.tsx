@@ -261,7 +261,7 @@ export function SubjectAnalytics({ stats, students, groups }: SubjectAnalyticsPr
                <div className="grid grid-cols-2 gap-2">
                  {lowAchievers.slice(0, 4).map(s => (
                    <div key={s.id} className="text-[10px] text-white">
-                     • {s.name} ({s.scores.find(sc => sc.subjectId === selectedSubjectId)?.value}/20)
+                     • {s.lastName} {s.firstName} ({s.scores.find(sc => sc.subjectId === selectedSubjectId)?.value}/20)
                    </div>
                  ))}
                </div>

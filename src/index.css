@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cairo:wght@400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans: "Inter", "Cairo", ui-sans-serif, system-ui, sans-serif;
@@ -24,8 +25,14 @@
       font-size: 11pt !important;
     }
     
-    aside, main, .no-print {
+    aside, .no-print {
       display: none !important;
+    }
+
+    main {
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
     }
     
     .print-only {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { 
-  LayoutDashboard, Users, Zap, Target, ClipboardList, TrendingUp, Sparkles, BookOpen, Activity, Menu, X
+  LayoutDashboard, Users, Target, ClipboardList, TrendingUp, Sparkles, BookOpen, Activity, Menu, X, ArrowLeftRight, Split
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { View, Student, Group, PrintData, SUBJECTS, AppConfig } from './types';
@@ -20,11 +20,11 @@ import { Overview } from './components/sections/Overview';
 import { GroupsManager } from './components/sections/GroupsManager';
 import { AdvancedAnalytics } from './components/sections/AdvancedAnalytics';
 import { EarlyWarningSystem } from './components/sections/EarlyWarningSystem';
-import { CorrelationEngine } from './components/sections/CorrelationEngine';
 import { ReportsManager } from './components/sections/ReportsManager';
 import { AIReport } from './components/sections/AIReport';
 import { SubjectAnalytics } from './components/sections/SubjectAnalytics';
 import { SystemSettings } from './components/sections/SystemSettings';
+import { Construction } from 'lucide-react';
 
 export default function App() {
   const [view, setView] = useState<View>('OVERVIEW');
@@ -219,7 +219,8 @@ export default function App() {
             <NavLink icon={<BookOpen size={18} />} label="المواد" active={view === 'SUBJECTS'} onClick={() => setView('SUBJECTS')} />
             <NavLink icon={<Activity size={18} />} label="المعمق" active={view === 'ADVANCED'} onClick={() => setView('ADVANCED')} />
             <NavLink icon={<Target size={18} />} label="التنبؤات" active={view === 'PREDICTIONS'} onClick={() => setView('PREDICTIONS')} />
-            <NavLink icon={<Zap size={18} />} label="الارتباط" active={view === 'CORRELATION'} onClick={() => setView('CORRELATION')} />
+            <NavLink icon={<ArrowLeftRight size={18} />} label="مقارنة" active={view === 'RESULTS_COMPARE'} onClick={() => setView('RESULTS_COMPARE')} />
+            <NavLink icon={<Split size={18} />} label="التفويج" active={view === 'GROUPING'} onClick={() => setView('GROUPING')} />
             <NavLink icon={<ClipboardList size={18} />} label="التقارير" active={view === 'REPORTS'} onClick={() => setView('REPORTS')} />
             <NavLink icon={<Settings size={18} />} label="الإعدادات" active={view === 'SETTINGS'} onClick={() => setView('SETTINGS')} />
           </div>
@@ -253,7 +254,8 @@ export default function App() {
               <NavLink icon={<BookOpen size={18} />} label="المواد" active={view === 'SUBJECTS'} onClick={() => { setView('SUBJECTS'); setIsMobileMenuOpen(false); }} />
               <NavLink icon={<Activity size={18} />} label="المعمق" active={view === 'ADVANCED'} onClick={() => { setView('ADVANCED'); setIsMobileMenuOpen(false); }} />
               <NavLink icon={<Target size={18} />} label="التنبؤات" active={view === 'PREDICTIONS'} onClick={() => { setView('PREDICTIONS'); setIsMobileMenuOpen(false); }} />
-              <NavLink icon={<Zap size={18} />} label="الارتباط" active={view === 'CORRELATION'} onClick={() => { setView('CORRELATION'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<ArrowLeftRight size={18} />} label="مقارنة النتائج" active={view === 'RESULTS_COMPARE'} onClick={() => { setView('RESULTS_COMPARE'); setIsMobileMenuOpen(false); }} />
+              <NavLink icon={<Split size={18} />} label="التفويج" active={view === 'GROUPING'} onClick={() => { setView('GROUPING'); setIsMobileMenuOpen(false); }} />
               <NavLink icon={<ClipboardList size={18} />} label="التقارير" active={view === 'REPORTS'} onClick={() => { setView('REPORTS'); setIsMobileMenuOpen(false); }} />
               <NavLink icon={<Settings size={18} />} label="الإعدادات" active={view === 'SETTINGS'} onClick={() => { setView('SETTINGS'); setIsMobileMenuOpen(false); }} />
             </motion.div>
@@ -262,7 +264,10 @@ export default function App() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="pt-28 lg:pt-32 px-4 sm:px-8 lg:px-12 pb-20 no-print min-h-screen">
+      <main className={cn(
+        "pt-28 lg:pt-32 px-4 sm:px-8 lg:px-12 pb-20 min-h-screen",
+        activePrintReport ? "no-print" : ""
+      )}>
         <AnimatePresence mode="wait">
           {view === 'OVERVIEW' && (
             <Overview 
@@ -300,9 +305,19 @@ export default function App() {
           {view === 'PREDICTIONS' && (
             <EarlyWarningSystem stats={stats} />
           )}
-
-          {view === 'CORRELATION' && (
-            <CorrelationEngine stats={stats} />
+          
+          {(view === 'RESULTS_COMPARE' || view === 'GROUPING') && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-40 border border-[#222] bg-[#111]"
+            >
+              <Construction size={48} className="text-[#D4AF37] mb-6" />
+              <h2 className="text-3xl font-serif italic text-white mb-2">
+                {view === 'RESULTS_COMPARE' ? 'مقارنة النتائج' : 'التفويج'}
+              </h2>
+              <p className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">هذا القسم قيد الإنشاء حالياً</p>
+            </motion.div>
           )}
 
           {view === 'REPORTS' && (

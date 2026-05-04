@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-export type View = 'OVERVIEW' | 'GROUPS' | 'SUBJECTS' | 'AI_REPORT' | 'REPORTS' | 'ADVANCED' | 'PREDICTIONS' | 'CORRELATION' | 'SETTINGS';
+export type View = 'OVERVIEW' | 'GROUPS' | 'SUBJECTS' | 'AI_REPORT' | 'REPORTS' | 'ADVANCED' | 'PREDICTIONS' | 'RESULTS_COMPARE' | 'GROUPING' | 'SETTINGS';
 
 export interface Subject {
   id: string;

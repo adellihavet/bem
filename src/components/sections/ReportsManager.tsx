@@ -90,6 +90,58 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
     return analysis;
   };
 
+  const getStabilityDiagnosis = (stability: number) => {
+    if (stability > 80) return "مؤشر الاستقرار (التجانس): ممتاز. الفوج متقارب جداً في التحصيل الدراسي مما يسهل التدريس الجماعي.";
+    if (stability > 60) return "مؤشر الاستقرار (التجانس): مقبول. توجد فوارق فردية طبيعية تستوجب العمل بالأفواج المصغرة.";
+    return "مؤشر الاستقرار (التجانس): حرج. يوجد تشتت كبير في المستويات، يوصى باعتماد بيداغوجيا الفروق لتقليص الفجوة.";
+  };
+
+  const getPedagogicalExplanation = (sub1Id: string, sub2Id: string) => {
+    const pairings: Record<string, string> = {
+      'math-phys': "تكامل المهارات المنطقية. التفوق في الرياضيات يمنح التلميذ 'الأدوات' اللازمة لحل المسائل الفيزيائية المعقدة.",
+      'ar-his_geo': "اللغة هي جسر الاستيعاب. التمكن من العربية يسهل تحليل النصوص التاريخية والتمكن من المصطلحات الجغرافية.",
+      'fr-en': "ذكاء لغوي مشترك. آليات تعلم اللغات الأجنبية واحدة، والاستثمار في أحداهما يدعم الأخرى غالباً.",
+      'science-phys': "اتصال العلوم التجريبية. المنهج العلمي في الملاحظة والاستنتاج مشترك بين المادتين.",
+      'islamic-ar': "ارتباط لاهوتي ولغوي. النصوص الدينية تعزز الذوق الأدبي والقدرة التعبيرية في اللغة العربية.",
+    };
+    const key = [sub1Id, sub2Id].sort().join('-');
+    return pairings[key] || "تداخل في المهارات الذهنية العامة كالحفظ، التحليل، أو القدرة على التركيز المستمر.";
+  };
+
+  const getSubjectDetailedDiagnosis = (subjectId: string, scores: number[]) => {
+    if (scores.length === 0) return [];
+    const notes = [];
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const variance = scores.reduce((acc, b) => acc + Math.pow(b - avg, 2), 0) / scores.length;
+    const stdDev = Math.sqrt(variance);
+
+    if (stdDev > 3.5) {
+      notes.push("تشخيص الفجوة: المادة تعاني من استقطاب حاد (نخبة مقابل متعثرين). التدريس التقليدي قد يهمش الفئة الضعيفة.");
+    } else if (avg < 10) {
+      notes.push("تشخيص الفجوة: تعثر جماعي في المادة. الخلل قد يكون في المنهجية أو في صعوبة الاختبارات وليس في قدرات التلاميذ الفردية.");
+    } else {
+      notes.push("تشخيص الفجوة: مستوى متوازن وتجانس جيد في التحصيل الدراسي للمادة.");
+    }
+
+    // Skills breakdown for Arabic/Math
+    const subScoresData = students.flatMap(s => s.scores.filter(sc => sc.subjectId === subjectId && sc.subScores));
+    if (subjectId === 'ar' && subScoresData.length > 0) {
+      const ling = subScoresData.reduce((acc, curr) => acc + (curr.subScores?.linguistic || 0), 0) / subScoresData.length;
+      const integ = subScoresData.reduce((acc, curr) => acc + (curr.subScores?.integrated || 0), 0) / subScoresData.length;
+      if (ling > (8 * 0.7) && integ < (8 * 0.4)) {
+        notes.push("تنبيه المهارات (اللغة): الأداء يظهر تمكناً من القواعد نظرياً مع عجز عن التوظيف في الإنتاج الكتابي.");
+      }
+    } else if (subjectId === 'math' && subScoresData.length > 0) {
+      const exAvgs = subScoresData.reduce((acc, curr) => acc + ((curr.subScores?.ex1 || 0) + (curr.subScores?.ex2 || 0) + (curr.subScores?.ex3 || 0) + (curr.subScores?.ex4 || 0)), 0) / (subScoresData.length * 12);
+      const sitAvg = subScoresData.reduce((acc, curr) => acc + (curr.subScores?.integrated || 0), 0) / (subScoresData.length * 8);
+      if (exAvgs > 0.6 && sitAvg < 0.4) {
+        notes.push("تنبيه المهارات (الرياضيات): تحكم جيد في التمارين المستقلة يقابله عجز في معالجة الوضعيات الإدماجية المركبة.");
+      }
+    }
+
+    return notes;
+  };
+
   const getDetailedTeacherAnalysis = (teacherName: string, subjectName: string, scores: number[], avg: number) => {
     const rate = scores.length > 0 ? (scores.filter(v => v >= 10).length / scores.length) * 100 : 0;
     const analysis = [
@@ -120,7 +172,7 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
       const subScores = students.flatMap(s => s.scores.filter(sc => sc.subjectId === sub.id).map(sc => sc.value));
       const avg = subScores.length > 0 ? subScores.reduce((a, b) => a + b, 0) / subScores.length : 0;
       const rate = subScores.length > 0 ? (subScores.filter(v => v >= 10).length / subScores.length) * 100 : 0;
-      return { name: sub.name, avg, rate };
+      return { id: sub.id, name: sub.name, avg, rate };
     });
 
     const topSub = [...subjectStats].sort((a, b) => b.rate - a.rate)[0];
@@ -128,6 +180,13 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
 
     analysis.push(`المادة الأكثر تفوقاً على مستوى المؤسسة هي ${topSub.name} بنسبة نجاح ${topSub.rate.toFixed(1)}%.`);
     analysis.push(`المادة التي تتطلب تدخلاً عاجلاً هي ${bottomSub.name} بنسبة نجاح ${bottomSub.rate.toFixed(1)}%.`);
+
+    // Add Correlation Insights
+    const mathScores = students.flatMap(s => s.scores.filter(sc => sc.subjectId === 'math').map(sc => sc.value));
+    const physScores = students.flatMap(s => s.scores.filter(sc => sc.subjectId === 'phys').map(sc => sc.value));
+    if (mathScores.length > 0 && physScores.length > 0) {
+      analysis.push(`الارتباط الأكاديمي: تم رصد ارتباط وثيق بين مادة الرياضيات والفيزياء. ${getPedagogicalExplanation('math', 'phys')}`);
+    }
 
     if (overallSuccess < 50) {
       analysis.push('الحالة العامة للمؤسسة تستدعي خطة طوارئ بيداغوجية بالتنسيق مع مديرية التربية.');
@@ -143,7 +202,7 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
       const subScores = students.flatMap(s => s.scores.filter(sc => sc.subjectId === sub.id).map(sc => sc.value));
       const avg = subScores.length > 0 ? subScores.reduce((a, b) => a + b, 0) / subScores.length : 0;
       const rate = subScores.length > 0 ? (subScores.filter(v => v >= 10).length / subScores.length) * 100 : 0;
-      return { name: sub.name, avg, rate };
+      return { id: sub.id, name: sub.name, avg, rate };
     });
 
     const failingSubjects = subjectStats.filter(s => s.avg < 10);
@@ -157,15 +216,30 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
       analysis.push(`نقاط القوة: تظهر النتائج تحكماً جيداً في مواد (${excellentSubjects.map(s => s.name).join('، ')}) مما يعكس فعالية استراتيجيات التدريس فيها.`);
     }
 
-    const scientificSubjects = ['Math', 'Physics', 'Science'];
-    const sciAvg = subjectStats.filter(s => scientificSubjects.includes(s.name)).reduce((acc, curr) => acc + curr.avg, 0) / 3;
-    const litAvg = subjectStats.filter(s => !scientificSubjects.includes(s.name)).reduce((acc, curr) => acc + curr.avg, 0) / (SUBJECTS.length - 3);
+    const scientificSubjects = ['math', 'phys', 'science'];
+    const sciStats = subjectStats.filter(s => scientificSubjects.includes(s.id));
+    const sciAvg = sciStats.length > 0 ? sciStats.reduce((acc, curr) => acc + curr.avg, 0) / sciStats.length : 0;
+    
+    const litStats = subjectStats.filter(s => !scientificSubjects.includes(s.id));
+    const litAvg = litStats.length > 0 ? litStats.reduce((acc, curr) => acc + curr.avg, 0) / litStats.length : 0;
 
-    if (Math.abs(sciAvg - litAvg) > 2) {
-      analysis.push(`ملاحظة التوازن: يوجد تباين ملحوظ بين المواد العلمية (${sciAvg.toFixed(1)}) والمواد الأدبية (${litAvg.toFixed(1)}). يوصى بالتنسيق بين المجالس التعليمية.`);
+    if (sciAvg > 0 && litAvg > 0 && Math.abs(sciAvg - litAvg) > 2) {
+      analysis.push(`ملاحظة التوازن المؤسساتي: يوجد تباين ملحوظ بين المواد العلمية (${sciAvg.toFixed(1)}) والمواد الأدبية (${litAvg.toFixed(1)}). يوصى بالتنسيق بين المجالس التعليمية لسد هذه الفجوة التحصيلية.`);
     }
 
-    analysis.push('التوصية: يجب تفعيل حصص المعالجة البيداغوجية فوراً للمواد التي سجلت نسبة نجاح أقل من 40%.');
+    // Add Cognitive Gap info for institutional level
+    const mostDivergent = SUBJECTS.map(sub => {
+      const scores = students.flatMap(s => s.scores.filter(sc => sc.subjectId === sub.id).map(sc => sc.value));
+      const avg = scores.reduce((a, b) => a + b, 0) / (scores.length || 1);
+      const variance = scores.reduce((acc, b) => acc + Math.pow(b - avg, 2), 0) / (scores.length || 1);
+      return { name: sub.name, stdDev: Math.sqrt(variance) };
+    }).sort((a, b) => b.stdDev - a.stdDev)[0];
+
+    if (mostDivergent && mostDivergent.stdDev > 3.5) {
+      analysis.push(`تقرير الفوارق: مادة ${mostDivergent.name} تسجل أعلى تشتت في النتائج على مستوى المؤسسة، مما يستوجب مراجعة توزيع التلاميذ أو تكثيف حصص المعالجة.`);
+    }
+
+    analysis.push('التوصية الختامية: يجب تفعيل حصص المعالجة البيداغوجية فوراً للمواد التي سجلت نسبة نجاح أقل من 40%، مع التركيز على المهارات الأساسية في المواد القاطرة.');
 
     return analysis;
   };
@@ -175,7 +249,7 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
       <header className="border-b border-[#1A1A1A] pb-10">
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">محرك التقارير (Reports Engine)</h2>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-white italic tracking-tight">محرك التقارير</h2>
         <p className="text-[#888] mt-2 font-sans text-sm tracking-wide">استخراج الوثائق الرسمية والتقارير التحليلية المنهجية</p>
       </header>
 
@@ -234,7 +308,10 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
                   charts: [
                     { label: 'توزيع المعدلات العامة في الفوج', data: getScoreDistribution(avgList), type: 'BAR' }
                   ],
-                  analysis: getDetailedGroupAnalysis(gStudents, avgList, gAvg)
+                  analysis: [
+                    ...getDetailedGroupAnalysis(gStudents, avgList, gAvg),
+                    getStabilityDiagnosis(gAvg > 0 ? (1 - (Math.sqrt(avgList.reduce((acc, b) => acc + Math.pow(b - gAvg, 2), 0) / avgList.length) / gAvg)) * 100 : 0)
+                  ]
                 });
               }
             }} className="w-full py-3 bg-[#D4AF37] text-black font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#B48F27] transition-all disabled:opacity-50" disabled={!selectedGroupId}><Printer size={14} /> طباعة التقرير</button>
@@ -296,30 +373,33 @@ export function ReportsManager({ groups, students, config, onPrint }: Props) {
               const teacherScores = teacherStudents.map(s => s.scores.find(sc => sc.subjectId === selectedSubjectId)?.value || 0);
               const teacherAvg = teacherScores.length > 0 ? teacherScores.reduce((a, b) => a + b, 0) / teacherStudents.length : 0;
 
-              onPrint({
-                title: `تقرير أداء الأستاذ: ${selectedTeacher}`,
-                subtitle: `المادة: ${subject?.name || ''} - ${config.academicYear}`,
-                type: 'TEACHER',
-                headers: ['التلميذ', 'الفوج', 'العلامة', 'المستوى'],
-                rows: teacherStudents.map(s => {
-                  const score = s.scores.find(sc => sc.subjectId === selectedSubjectId)?.value || 0;
-                  return [
-                    `${s.lastName} ${s.firstName}`,
-                    groups.find(g => g.id === s.groupId)?.name || '',
-                    score.toFixed(2),
-                    score >= 10 ? 'متحكم' : 'غير متحكم'
-                  ];
-                }),
-                stats: [
-                  { label: 'عدد التلاميذ', value: teacherStudents.length.toString() },
-                  { label: 'متوسط العلامة', value: teacherAvg.toFixed(2) },
-                  { label: 'نسبة النجاح في المادة', value: `${teacherScores.length > 0 ? ((teacherScores.filter(v => v >= 10).length / teacherScores.length) * 100).toFixed(1) : 0}%` }
-                ],
-                charts: [
-                  { label: `توزيع علامات مادة ${subject?.name}`, data: getScoreDistribution(teacherScores), type: 'BAR' }
-                ],
-                analysis: getDetailedTeacherAnalysis(selectedTeacher, subject?.name || '', teacherScores, teacherAvg)
-              });
+                onPrint({
+                  title: `تقرير أداء الأستاذ: ${selectedTeacher}`,
+                  subtitle: `المادة: ${subject?.name || ''} - ${config.academicYear}`,
+                  type: 'TEACHER',
+                  headers: ['التلميذ', 'الفوج', 'العلامة', 'المستوى'],
+                  rows: teacherStudents.map(s => {
+                    const score = s.scores.find(sc => sc.subjectId === selectedSubjectId)?.value || 0;
+                    return [
+                      `${s.lastName} ${s.firstName}`,
+                      groups.find(g => g.id === s.groupId)?.name || '',
+                      score.toFixed(2),
+                      score >= 10 ? 'متحكم' : 'غير متحكم'
+                    ];
+                  }),
+                  stats: [
+                    { label: 'عدد التلاميذ', value: teacherStudents.length.toString() },
+                    { label: 'متوسط العلامة', value: teacherAvg.toFixed(2) },
+                    { label: 'نسبة النجاح في المادة', value: `${teacherScores.length > 0 ? ((teacherScores.filter(v => v >= 10).length / teacherScores.length) * 100).toFixed(1) : 0}%` }
+                  ],
+                  charts: [
+                    { label: `توزيع علامات مادة ${subject?.name}`, data: getScoreDistribution(teacherScores), type: 'BAR' }
+                  ],
+                  analysis: [
+                    ...getDetailedTeacherAnalysis(selectedTeacher, subject?.name || '', teacherScores, teacherAvg),
+                    ...getSubjectDetailedDiagnosis(selectedSubjectId, teacherScores)
+                  ]
+                });
             }} className="w-full py-3 bg-[#D4AF37] text-black font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#B48F27] transition-all disabled:opacity-50" disabled={!selectedTeacher || !selectedSubjectId}><Printer size={14} /> طباعة التقرير</button>
           </div>
         </div>

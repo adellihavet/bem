@@ -36,7 +36,7 @@ const RiskDiagnosisModal = ({ student, onClose }: RiskModalProps) => {
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="bg-[#0A0A0A] border border-[#D4AF37]/20 w-full max-w-4xl overflow-hidden relative"
+          className="bg-[#0A0A0A] border border-[#D4AF37]/20 w-full max-w-4xl overflow-hidden relative print:hidden"
         >
           <button onClick={onClose} className="absolute top-6 left-6 text-[#444] hover:text-white transition-colors z-20">
             <X size={24} />
@@ -220,10 +220,15 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
     
     // UI Feedback
     const btn = document.getElementById('export-btn');
+    const btn2 = document.getElementById('coordinator-btn');
     if (btn) {
       btn.innerText = "...جاري التجهيز";
       setTimeout(() => { btn.innerText = "✓ تمت العملية"; }, 1000);
       setTimeout(() => { btn.innerText = "تصدير خطة الدعم المؤسساتية"; }, 3000);
+    }
+    if (btn2) {
+      btn2.innerText = "✓ تم التحديث";
+      setTimeout(() => { btn2.innerText = "تحديث نسخة المنسق (PDF)"; }, 2000);
     }
   };
 
@@ -233,12 +238,65 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
       animate={{ opacity: 1 }}
       className="space-y-12 pb-20"
     >
+      {/* Print-Only Header */}
+      <div className="hidden print:block text-black mb-10 border-b-4 border-black pb-6" dir="rtl">
+        <div className="text-center mb-6">
+           <h1 className="text-xl font-bold">الجمهورية الجزائرية الديمقراطية الشعبية</h1>
+           <h2 className="text-lg font-bold border-b border-black pb-2 inline-block px-12">وزارة التربية الوطنية</h2>
+        </div>
+        <div className="flex justify-between items-center px-4">
+           <div className="text-right">
+              <p className="text-sm font-bold">المؤسسة التعليمية: ......</p>
+              <p className="text-xs">المستوى: 4 متوسط</p>
+           </div>
+           <div className="text-center">
+              <h3 className="text-2xl font-black underline">خطة الدعم والتدخل البيداغوجي</h3>
+              <p className="text-sm italic">نتاج رادار الكشف المبكر</p>
+           </div>
+           <div className="text-left">
+              <p className="text-xs">تاريخ الاستخراج: {new Date().toLocaleDateString('ar-DZ')}</p>
+           </div>
+        </div>
+      </div>
+
+      {/* Print-Only Matrix Data Table */}
+      <div className="hidden print:block text-black mb-20" dir="rtl">
+        <h3 className="text-lg font-bold border-b-2 border-black pb-2 mb-4">أولاً: قائمة التلاميذ حسب درجة التعثر والمعدل المتوقع</h3>
+        <table className="w-full border-collapse border border-black text-[10px]">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border border-black p-2">التلميذ</th>
+              <th className="border border-black p-2">الفوج</th>
+              <th className="border border-black p-2">المعدل المتوقع</th>
+              <th className="border border-black p-2">درجة الخطر</th>
+              <th className="border border-black p-2">أهم عوامل الخطر</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredPredictions.map(p => (
+              <tr key={p.studentId}>
+                <td className="border border-black p-2 font-bold">{p.name}</td>
+                <td className="border border-black p-2">{p.groupName}</td>
+                <td className={cn(
+                  "border border-black p-2 font-mono text-center",
+                  p.predictedAverage < 10 ? "text-red-700 bg-red-50" : "text-green-700"
+                )}>{p.predictedAverage.toFixed(2)}</td>
+                <td className="border border-black p-2 text-center">
+                  {p.status === 'CRITICAL' ? 'مرتفع جداً' : p.status === 'RISK' ? 'متوسط' : 'مستقر'}
+                </td>
+                <td className="border border-black p-2">{p.riskFactors.join(' - ')}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <RiskDiagnosisModal 
         student={selectedStudent} 
         onClose={() => setSelectedStudent(null)} 
       />
 
-      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end border-b border-[#1A1A1A] pb-10 mb-12 gap-8">
+      <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end border-b border-[#1A1A1A] pb-10 mb-12 gap-8 print:hidden">
         <div className="text-right">
            <div className="flex items-center gap-3 text-red-500 mb-2 justify-end">
             <span className="text-[10px] font-bold uppercase tracking-[0.3em]">نظام التنبؤ الاستباقي</span>
@@ -283,7 +341,7 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
       </header>
 
       {/* Probability Matrix Visualization */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 print:hidden">
         <div className="lg:col-span-3 bg-[#111] border border-[#222] p-10 relative group">
            <div className="flex justify-between items-center mb-10 border-b border-[#1A1A1A] pb-6 flex-row-reverse">
               <div className="text-right">
@@ -375,7 +433,7 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
               </div>
               <button 
                 id="export-btn"
-                onClick={handleExport}
+                onClick={() => handleExport()}
                 className="w-full py-3 bg-[#D4AF37]/10 text-[#D4AF37] text-[9px] font-bold uppercase tracking-widest border border-[#D4AF37]/20 hover:bg-[#D4AF37] hover:text-black transition-all"
               >
                 تصدير خطة الدعم المؤسساتية
@@ -384,28 +442,29 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
         </div>
       </div>
 
-      {/* Success Analytics Dashboard */}
-      <div className="bg-[#0A0A0A] border border-[#222] p-10 space-y-10" dir="rtl">
-         <div className="flex flex-col lg:flex-row justify-between items-center gap-10">
+      {/* Success Analytics Dashboard - Print Ready */}
+      <div className="bg-[#0A0A0A] border border-[#222] p-10 space-y-10 print:bg-white print:border-black print:text-black print:p-0 print:border-none print:mt-10" dir="rtl">
+         <div className="flex flex-col lg:flex-row justify-between items-center gap-10 print:mb-8 print:border-b-2 print:border-black print:pb-6">
             <div className="text-right w-full lg:w-auto">
-               <h3 className="text-2xl font-serif italic text-[#D4AF37]">تقرير عتبات النجاح المتوقعة</h3>
-               <p className="text-[10px] text-[#444] uppercase tracking-widest mt-1">تحليل القدرة على تجاوز عتبة 10/20</p>
+               <h3 className="text-2xl font-serif italic text-[#D4AF37] print:text-black print:not-italic print:font-bold print:text-xl">ثانياً: تقرير عتبات النجاح المتوقعة</h3>
+               <p className="text-[10px] text-[#444] uppercase tracking-widest mt-1 print:text-gray-800">تحليل القدرة على تجاوز عتبة 10/20</p>
             </div>
             
-            <div className="flex bg-[#111] p-6 border border-[#222] gap-10 flex-1 lg:max-w-xl w-full">
+            <div className="flex bg-[#111] p-6 border border-[#222] gap-10 flex-1 lg:max-w-xl w-full print:bg-gray-100 print:border-black print:p-6">
                <div className="text-right">
-                  <p className="text-[10px] text-[#444] uppercase font-bold mb-1">المعدل العام</p>
-                  <p className="text-3xl font-mono text-white">{statsBreakdown.globalSuccessRate.toFixed(1)}%</p>
+                  <p className="text-[10px] text-[#444] uppercase font-bold mb-1 print:text-gray-600">نسبة النجاح المتوقعة</p>
+                  <p className="text-3xl font-mono text-white print:text-black">{statsBreakdown.globalSuccessRate.toFixed(1)}%</p>
                </div>
-               <div className="flex-1 space-y-4">
+               <div className="flex-1 space-y-4 print:space-y-2">
+                  <p className="hidden print:block text-xs font-bold underline mb-4 tracking-widest">تفصيل نتائج المواد:</p>
                   {statsBreakdown.subjects.map((s, i) => (
                     <div key={i} className="space-y-1">
-                      <div className="flex justify-between text-[8px] text-[#888] uppercase">
+                      <div className="flex justify-between text-[8px] text-[#888] uppercase print:text-black">
                         <span>{s.name}</span>
                         <span>{s.rate}%</span>
                       </div>
-                      <div className="h-0.5 bg-[#1A1A1A] w-full">
-                        <div className="h-full bg-[#D4AF37]" style={{ width: `${s.rate}%` }} />
+                      <div className="h-0.5 bg-[#1A1A1A] w-full print:bg-gray-300">
+                        <div className="h-full bg-[#D4AF37] print:bg-black" style={{ width: `${s.rate}%` }} />
                       </div>
                     </div>
                   ))}
@@ -415,32 +474,32 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
 
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Expected Success List */}
-            <div className="space-y-4">
-               <div className="flex items-center gap-3 text-green-500 border-b border-[#1A1A1A] pb-3 justify-start">
-                  <Target size={14} />
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-[#888]">تلاميذ المسار الآمن (المتوقع نجاحهم)</h4>
+            <div className="space-y-4 print:border print:border-black print:p-4">
+               <div className="flex items-center gap-3 text-green-500 border-b border-[#1A1A1A] pb-3 justify-start print:border-black">
+                  <Target size={14} className="print:text-black" />
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-[#888] print:text-black">تلاميذ المسار الآمن (المتوقع نجاحهم)</h4>
                </div>
-               <div className="bg-[#111] border border-[#222] divide-y divide-[#1A1A1A]">
-                  {filteredPredictions.filter(p => p.predictedAverage >= 10).slice(0, 5).map(p => (
-                    <div key={p.studentId} className="p-4 flex justify-between items-center group hover:bg-white/5 transition-colors">
-                       <span className="text-xs text-white font-serif">{p.name}</span>
-                       <span className="text-xs font-mono text-green-500">{p.predictedAverage.toFixed(2)}</span>
+               <div className="bg-[#111] border border-[#222] divide-y divide-[#1A1A1A] print:bg-white print:border-none print:divide-black/20">
+                  {filteredPredictions.filter(p => p.predictedAverage >= 10).slice(0, 10).map(p => (
+                    <div key={p.studentId} className="p-4 flex justify-between items-center group hover:bg-white/5 transition-colors print:p-2">
+                       <span className="text-xs text-white font-serif print:text-black">{p.name}</span>
+                       <span className="text-xs font-mono text-green-500 print:text-green-800">{p.predictedAverage.toFixed(2)}</span>
                     </div>
                   ))}
                </div>
             </div>
 
             {/* Expected Failure List */}
-            <div className="space-y-4">
-               <div className="flex items-center gap-3 text-red-500 border-b border-[#1A1A1A] pb-3 justify-start">
-                  <AlertTriangle size={14} />
-                  <h4 className="text-xs font-bold uppercase tracking-widest text-[#888]">تلاميذ في دائرة الخطر (المتوقع رسوبهم)</h4>
+            <div className="space-y-4 print:border print:border-black print:p-4">
+               <div className="flex items-center gap-3 text-red-500 border-b border-[#1A1A1A] pb-3 justify-start print:border-black">
+                  <AlertTriangle size={14} className="print:text-black" />
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-[#888] print:text-black">تلاميذ في دائرة الخطر (المتوقع رسوبهم)</h4>
                </div>
-               <div className="bg-[#111] border border-[#222] divide-y divide-[#1A1A1A]">
-                  {filteredPredictions.filter(p => p.predictedAverage < 10).slice(0, 5).map(p => (
-                    <div key={p.studentId} className="p-4 flex justify-between items-center group hover:bg-white/5 transition-colors">
-                       <span className="text-xs text-white font-serif">{p.name}</span>
-                       <span className="text-xs font-mono text-red-500">{p.predictedAverage.toFixed(2)}</span>
+               <div className="bg-[#111] border border-[#222] divide-y divide-[#1A1A1A] print:bg-white print:border-none print:divide-black/20">
+                  {filteredPredictions.filter(p => p.predictedAverage < 10).slice(0, 10).map(p => (
+                    <div key={p.studentId} className="p-4 flex justify-between items-center group hover:bg-white/5 transition-colors print:p-2">
+                       <span className="text-xs text-white font-serif print:text-black">{p.name}</span>
+                       <span className="text-xs font-mono text-red-500 print:text-red-800">{p.predictedAverage.toFixed(2)}</span>
                     </div>
                   ))}
                </div>
@@ -449,24 +508,26 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
       </div>
 
       {/* Enhanced Prediction List */}
-      <div className="space-y-6 text-right" dir="rtl">
-         <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-4">
+      <div className="space-y-6 text-right page-break-before-always print:pt-10" dir="rtl">
+         <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-4 print:border-black">
             <div className="flex items-center gap-4">
-               <ShieldAlert size={24} className="text-[#D4AF37]" />
-               <h3 className="text-2xl font-serif italic text-white">قائمة الاستجابة السريعة</h3>
+               <ShieldAlert size={24} className="text-[#D4AF37] print:hidden" />
+               <h3 className="text-2xl font-serif italic text-white print:text-black print:not-italic print:font-bold underline print:text-lg">ثالثاً: قائمة الاستجابة السريعة (تفصيل الحالات)</h3>
             </div>
             <div className="flex items-center gap-4">
               <button 
+                id="coordinator-btn"
                 onClick={() => handleExport("قائمة الاستجابة السريعة - حسب الفوج")}
                 className="px-3 py-1 text-[9px] font-bold text-[#D4AF37] border border-[#D4AF37]/30 hover:bg-[#D4AF37] hover:text-black transition-all print:hidden"
               >
                 تحديث نسخة المنسق (PDF)
               </button>
-              <span className="text-[10px] text-[#444] font-mono tracking-widest uppercase">نتائج التصفية: {filteredPredictions.length} حالة</span>
+               <span className="text-[10px] text-[#444] font-mono tracking-widest uppercase print:text-black">نتائج التصفية: {filteredPredictions.length} حالة</span>
             </div>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+         {/* Screen-Only Cards */}
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:hidden">
             {filteredPredictions.map((p) => (
                <motion.div 
                   layout
@@ -521,6 +582,46 @@ export function EarlyWarningSystem({ stats }: { stats: AnalyticsStats }) {
                   </div>
                </motion.div>
             ))}
+         </div>
+
+         {/* Print-Only Professional Table */}
+         <div className="hidden print:block text-black">
+            <table className="w-full border-collapse border border-black text-[9px]">
+               <thead>
+                  <tr className="bg-gray-100">
+                     <th className="border border-black p-2">الرقم</th>
+                     <th className="border border-black p-2">اسم ولقب التلميذ</th>
+                     <th className="border border-black p-2">الفوج</th>
+                     <th className="border border-black p-2">المعدل المتوقع</th>
+                     <th className="border border-black p-2">الحالة</th>
+                     <th className="border border-black p-2">خطة التدخل الاستعجالي</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  {filteredPredictions.map((p, index) => (
+                     <tr key={p.studentId} className={cn(p.status === 'CRITICAL' ? "bg-red-50" : "")}>
+                        <td className="border border-black p-2 text-center">{index + 1}</td>
+                        <td className="border border-black p-2 font-bold">{p.name}</td>
+                        <td className="border border-black p-2 text-center">{p.groupName}</td>
+                        <td className="border border-black p-2 text-center font-mono font-bold">
+                           {p.predictedAverage.toFixed(2)}
+                        </td>
+                        <td className="border border-black p-2 text-center">
+                           {p.status === 'CRITICAL' ? 'حرج' : p.status === 'RISK' ? 'مهدد' : 'مستقر'}
+                        </td>
+                        <td className="border border-black p-2">
+                           {p.riskFactors.length > 0 
+                             ? `معالجة ثغرات ${p.riskFactors.join(' و ')} عبر الدعم المكثف.` 
+                             : 'متابعة بيداغوجية عادية.'}
+                        </td>
+                     </tr>
+                  ))}
+               </tbody>
+            </table>
+            <div className="mt-10 grid grid-cols-2 gap-20">
+               <div className="text-center pt-10 border-t border-black">ختم وتوقيع المدير</div>
+               <div className="text-center pt-10 border-t border-black">ختم وتوقيع المنسق البيداغوجي</div>
+            </div>
          </div>
       </div>
     </motion.div>
